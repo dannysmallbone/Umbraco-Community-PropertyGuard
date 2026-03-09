@@ -1,7 +1,6 @@
-namespace PropertyGuard
+﻿namespace PropertyGuard;
+
+public class Constants
 {
-    public class Constants
-    {
-        public const string ApiName = "propertyguard";
-    }
+    public const string ApiName = "propertyguard";
 }
