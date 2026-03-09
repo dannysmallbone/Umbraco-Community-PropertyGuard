@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="PropertyGuard.Website/PropertyGuard.Website.csproj" />
+  <Project Path="PropertyGuard/PropertyGuard.csproj" />
+</Solution>
