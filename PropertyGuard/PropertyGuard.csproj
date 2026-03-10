@@ -7,9 +7,16 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <PackageId>PropertyGuard</PackageId>
-    <Product>PropertyGuard</Product>
-    <Title>PropertyGuard</Title>
+    <PackageId>Umbraco.Community.PropertyGuard</PackageId>
+    <Product>Umbraco.Community.PropertyGuard</Product>
+    <Title>Property Guard</Title>
+    <Description>Umbraco Community PropertyGuard is an open-source package for Umbraco CMS that protects Umbraco content properties with guards.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>umbraco; umbraco-cms; property-guard</PackageTags>
+    <IncludeSymbols>True</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Copyright>Daniel Smallbone</Copyright>
   </PropertyGroup>
 
 

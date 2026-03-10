@@ -480,3 +480,5 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+PropertyGuard/wwwroot/App_Plugins/PropertyGuard

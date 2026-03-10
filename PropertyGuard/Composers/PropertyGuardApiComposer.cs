@@ -32,14 +32,14 @@ public class PropertyGuardApiComposer : IComposer
             // Along with having a generated swagger JSON file that we can use to auto generate a TypeScript client
             opt.SwaggerDoc(Constants.ApiName, new OpenApiInfo
             {
-                Title = "Property Guard Backoffice API",
+                Title = $"{Constants.Name} Backoffice API",
                 Version = "1.0",
-                // Contact = new OpenApiContact
-                // {
-                //     Name = "Some Developer",
-                //     Email = "you@company.com",
-                //     Url = new Uri("https://company.com")
-                // }
+                Contact = new OpenApiContact
+                {
+                    Name = "Danny Smallbone",
+                    Email = "dannysmallbone@gmail.com",
+                    Url = new Uri("https://github.com/dannysmallbone/Umbraco-Community-PropertyGuard")
+                }
             });
 
             // Enable Umbraco authentication for the "Example" Swagger document
@@ -54,7 +54,7 @@ public class PropertyGuardApiComposer : IComposer
     }
 
     // This is used to generate nice operation IDs in our swagger json file
-    // So that the gnerated TypeScript client has nice method names and not too verbose
+    // So that the generated TypeScript client has nice method names and not too verbose
     // https://docs.umbraco.com/umbraco-cms/tutorials/creating-a-backoffice-api/umbraco-schema-and-operation-ids#operation-ids
     public class CustomOperationHandler : OperationIdHandler
     {

@@ -1,13 +1,13 @@
 import type {
   UmbEntryPointOnInit,
   UmbEntryPointOnUnload,
-} from "@umbraco-cms/backoffice/extension-api";
+} from '@umbraco-cms/backoffice/extension-api';
 
 // load up the manifests here
 export const onInit: UmbEntryPointOnInit = (_host, _extensionRegistry) => {
-  console.log("Hello from my extension 🎉");
+  console.log('Hello from Property Guard 🛡️');
 };
 
 export const onUnload: UmbEntryPointOnUnload = (_host, _extensionRegistry) => {
-  console.log("Goodbye from my extension 👋");
+  console.log('Goodbye from Property Guard 👋');
 };

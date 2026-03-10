@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace PropertyGuard.Controllers;
 
 [ApiVersion("1.0")]
-[ApiExplorerSettings(GroupName = "PropertyGuard")]
+[ApiExplorerSettings(GroupName = Constants.Name)]
 public class PropertyGuardApiController : PropertyGuardApiControllerBase
 {
     [HttpGet("ping")]
