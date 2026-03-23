@@ -4,25 +4,49 @@ export type ClientOptions = {
     baseUrl: 'https://localhost:44303' | (string & {});
 };
 
-export type PingData = {
-    body?: never;
-    path?: never;
-    query?: never;
-    url: '/umbraco/propertyguard/api/v1/ping';
+export type ProblemDetails = {
+    type?: string | null;
+    title?: string | null;
+    status?: number | null;
+    detail?: string | null;
+    instance?: string | null;
+    [key: string]: unknown | string | null | string | null | number | null | string | null | string | null | undefined;
 };
 
-export type PingErrors = {
+export type PropertyGuardDto = {
+    propertyAlias: string;
+    contentTypeAlias: string;
+    featureKey: string;
+    message: string;
+};
+
+export type GetPropertyGuardsData = {
+    body?: never;
+    path?: never;
+    query?: {
+        contentTypeAlias?: string;
+    };
+    url: '/umbraco/propertyguard/api/v1/GetPropertyGuards';
+};
+
+export type GetPropertyGuardsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
     /**
      * The resource is protected and requires an authentication token
      */
     401: unknown;
 };
 
-export type PingResponses = {
+export type GetPropertyGuardsError = GetPropertyGuardsErrors[keyof GetPropertyGuardsErrors];
+
+export type GetPropertyGuardsResponses = {
     /**
      * OK
      */
-    200: string;
+    200: Array<PropertyGuardDto>;
 };
 
-export type PingResponse = PingResponses[keyof PingResponses];
+export type GetPropertyGuardsResponse = GetPropertyGuardsResponses[keyof GetPropertyGuardsResponses];

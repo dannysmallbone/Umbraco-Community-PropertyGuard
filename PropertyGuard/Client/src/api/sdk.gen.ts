@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { PingData, PingErrors, PingResponses } from './types.gen';
+import type { GetPropertyGuardsData, GetPropertyGuardsErrors, GetPropertyGuardsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -19,15 +19,15 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 export class PropertyGuardService {
-    public static ping<ThrowOnError extends boolean = false>(options?: Options<PingData, ThrowOnError>) {
-        return (options?.client ?? client).get<PingResponses, PingErrors, ThrowOnError>({
+    public static getPropertyGuards<ThrowOnError extends boolean = false>(options?: Options<GetPropertyGuardsData, ThrowOnError>) {
+        return (options?.client ?? client).get<GetPropertyGuardsResponses, GetPropertyGuardsErrors, ThrowOnError>({
             security: [
                 {
                     scheme: 'bearer',
                     type: 'http'
                 }
             ],
-            url: '/umbraco/propertyguard/api/v1/ping',
+            url: '/umbraco/propertyguard/api/v1/GetPropertyGuards',
             ...options
         });
     }
