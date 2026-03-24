@@ -1,13 +1,22 @@
-import type {
-  UmbEntryPointOnInit,
-  UmbEntryPointOnUnload,
-} from '@umbraco-cms/backoffice/extension-api';
+import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
+import type { UmbEntryPointOnInit } from '@umbraco-cms/backoffice/extension-api';
+import { client } from '../api/client.gen';
 
-// load up the manifests here
 export const onInit: UmbEntryPointOnInit = (_host, _extensionRegistry) => {
-  console.log('Hello from Property Guard 🛡️');
-};
+  _host.consumeContext(UMB_AUTH_CONTEXT, async (authContext) => {
+    const config = authContext?.getOpenApiConfiguration();
 
-export const onUnload: UmbEntryPointOnUnload = (_host, _extensionRegistry) => {
-  console.log('Goodbye from Property Guard 👋');
+    if (!config) {
+      console.warn(
+        'No OpenAPI configuration in auth context, Property Guard API will not be initialized',
+      );
+      return;
+    }
+
+    client.setConfig({
+      baseUrl: config.base,
+      credentials: config.credentials,
+      auth: () => config.token(),
+    });
+  });
 };
