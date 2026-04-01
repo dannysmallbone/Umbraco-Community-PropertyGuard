@@ -38,7 +38,9 @@ export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElemen
       <uui-box>
         <uui-table>
           <uui-table-head>
-            <uui-table-head-cell>${this.localize.term('general_alias')}</uui-table-head-cell>
+            <uui-table-head-cell>
+              ${this.localize.term('general_name')}: [${this.localize.term('general_alias')}]
+            </uui-table-head-cell>
             <uui-table-head-cell>${this.localize.term('general_message')}</uui-table-head-cell>
           </uui-table-head>
           ${this._propertyGuards.map(

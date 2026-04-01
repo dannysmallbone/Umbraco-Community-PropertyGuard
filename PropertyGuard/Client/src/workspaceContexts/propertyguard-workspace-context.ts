@@ -18,7 +18,9 @@ export class PropertyGuardWorkspaceContext extends UmbContextBase {
   #documentWorkspaceContext?: UmbDocumentWorkspaceContext;
   #notificationContext?: UmbNotificationContext;
 
-  #propertyGuards = new UmbArrayState<PropertyGuardDto>([], (guard) => guard.propertyAlias);
+  #propertyGuards = new UmbArrayState<PropertyGuardDto>([], (propertyGuard) =>
+    this.getPropertyGuardKey(propertyGuard),
+  );
   propertyGuards = this.#propertyGuards.asObservable();
 
   #hasPropertyGuards = new UmbBooleanState(false);
@@ -40,6 +42,10 @@ export class PropertyGuardWorkspaceContext extends UmbContextBase {
       const hasLoaded = this.#documentWorkspaceContext.structure.whenLoaded();
       hasLoaded.then(() => this.#observeContentType());
     });
+  }
+
+  private getPropertyGuardKey(propertyGuard: PropertyGuardDto): string {
+    return `${propertyGuard.contentTypeAlias}-${propertyGuard.propertyAlias}`.toLocaleLowerCase();
   }
 
   async #observeContentType() {
@@ -89,7 +95,6 @@ export class PropertyGuardWorkspaceContext extends UmbContextBase {
     const propertyGuards = this.#propertyGuards.getValue();
     if (propertyGuards.length === 0) return;
 
-    const propertyGuardRules: UmbPropertyGuardRule[] = [];
     for (const propertyGuard of propertyGuards) {
       const property = await this.#documentWorkspaceContext?.structure.getPropertyStructureByAlias(
         propertyGuard.propertyAlias,
@@ -97,18 +102,23 @@ export class PropertyGuardWorkspaceContext extends UmbContextBase {
 
       if (!property) continue;
 
+      const guard: PropertyGuardDto = {
+        ...propertyGuard,
+        propertyAlias: `${property.name}: [${propertyGuard.propertyAlias}]`,
+      };
+
       const propertyGuardRule: UmbPropertyGuardRule = {
-        unique: `propertyguard-${contentTypeAlias}-${propertyGuard.propertyAlias}`,
+        unique: `propertyguard-${this.getPropertyGuardKey(propertyGuard)}`,
         permitted: false,
         message: propertyGuard.message,
         propertyType: { unique: property.unique },
       };
 
-      propertyGuardRules.push(propertyGuardRule);
+      this.#documentWorkspaceContext?.propertyWriteGuard.addRule(propertyGuardRule);
+      this.#propertyGuards.updateOne(this.getPropertyGuardKey(propertyGuard), guard);
     }
 
-    if (propertyGuardRules.length > 0) {
-      this.#documentWorkspaceContext?.propertyWriteGuard.addRules(propertyGuardRules);
+    if (propertyGuards.length > 0) {
       this.#hasPropertyGuards.setValue(true);
     }
   }
