@@ -1,9 +1,12 @@
+using PropertyGuard.DependencyInjection;
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.CreateUmbracoBuilder()
     .AddBackOffice()
     .AddWebsite()
     .AddComposers()
+    .AddPropertyGuard()
     .Build();
 
 WebApplication app = builder.Build();
