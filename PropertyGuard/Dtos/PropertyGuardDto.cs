@@ -2,11 +2,11 @@
 
 public class PropertyGuardDto
 {
-    public string PropertyAlias { get; set; } = string.Empty;
-
     public string ContentTypeAlias { get; set; } = string.Empty;
 
-    public string FeatureKey { get; set; } = "Global.PropertyGuards";
+    public string PropertyAlias { get; set; } = string.Empty;
 
-    public string Message { get; set; } = "Property is protected by Property Guard";
+    public string FeatureKey { get; set; } = Constants.FeatureKey;
+
+    public string Message { get; set; } = Constants.GuardMessage;
 }

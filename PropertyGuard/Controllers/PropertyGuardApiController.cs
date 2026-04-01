@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using PropertyGuard.Core;
 using PropertyGuard.Dtos;
 using Umbraco.Cms.Api.Common.Builders;
 
@@ -9,9 +10,12 @@ namespace PropertyGuard.Controllers;
 
 [ApiVersion("1.0")]
 [ApiExplorerSettings(GroupName = Constants.Name)]
-public class PropertyGuardApiController(ILogger<PropertyGuardApiController> logger) : PropertyGuardApiControllerBase
+public class PropertyGuardApiController(
+    ILogger<PropertyGuardApiController> logger,
+    IPropertyGuardRegistry propertyGuardRegistry) : PropertyGuardApiControllerBase
 {
     private readonly ILogger<PropertyGuardApiController> _logger = logger;
+    private readonly IPropertyGuardRegistry _propertyGuardRegistry = propertyGuardRegistry;
 
     [HttpGet("GetPropertyGuards")]
     [ProducesResponseType<List<PropertyGuardDto>>(StatusCodes.Status200OK)]
@@ -22,16 +26,21 @@ public class PropertyGuardApiController(ILogger<PropertyGuardApiController> logg
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(contentTypeAlias);
 
-            List<PropertyGuardDto> propertyGuards = [
-                new PropertyGuardDto { ContentTypeAlias = "home", PropertyAlias = "heroHeader" },
-                new PropertyGuardDto { ContentTypeAlias = "home", PropertyAlias = "heroDescription" },
-                new PropertyGuardDto { ContentTypeAlias = "products", PropertyAlias = "pageTitle" },
-                new PropertyGuardDto { ContentTypeAlias = "contentPage", PropertyAlias = "pageTitle" }
-            ];
+            IReadOnlyDictionary<string, PropertyGuardEntry>? guards = _propertyGuardRegistry.GetPropertyGuards(contentTypeAlias);
+            if (guards == null || guards.Count == 0)
+            {
+                return Ok(new List<PropertyGuardDto>());
+            }
 
-            propertyGuards = [.. propertyGuards.Where(x => x.ContentTypeAlias.Equals(contentTypeAlias))];
+            IEnumerable<PropertyGuardDto> result = [.. guards.Select(kvp => new PropertyGuardDto
+            {
+                ContentTypeAlias = contentTypeAlias,
+                PropertyAlias = kvp.Key,
+                FeatureKey = kvp.Value.FeatureKey,
+                Message = kvp.Value.Message
+            })];
 
-            return Ok(propertyGuards);
+            return Ok(result);
         }
         catch (Exception ex)
         {
