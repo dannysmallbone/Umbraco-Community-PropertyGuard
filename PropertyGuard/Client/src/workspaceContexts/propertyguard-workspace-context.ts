@@ -9,7 +9,11 @@ import {
   UMB_NOTIFICATION_CONTEXT,
   UmbNotificationContext,
 } from '@umbraco-cms/backoffice/notification';
-import { UmbArrayState, UmbBooleanState } from '@umbraco-cms/backoffice/observable-api';
+import {
+  observeMultiple,
+  UmbArrayState,
+  UmbBooleanState,
+} from '@umbraco-cms/backoffice/observable-api';
 import { UmbPropertyGuardRule } from '@umbraco-cms/backoffice/property';
 import { PropertyGuardDto, PropertyGuardService } from '../api';
 import { ProblemDetails } from '@umbraco-cms/backoffice/external/backend-api';
@@ -39,8 +43,12 @@ export class PropertyGuardWorkspaceContext extends UmbContextBase {
 
       if (!this.#documentWorkspaceContext) return;
 
-      const hasLoaded = this.#documentWorkspaceContext.structure.whenLoaded();
-      hasLoaded.then(() => this.#observeContentType());
+      this.#documentWorkspaceContext.structure
+        .whenLoaded()
+        .then(() => this.#observeContentType())
+        .catch((err) => {
+          console.error('Failed to load workspace structure for Property Guard:', err);
+        });
     });
   }
 
@@ -52,20 +60,25 @@ export class PropertyGuardWorkspaceContext extends UmbContextBase {
     if (!this.#documentWorkspaceContext) return;
 
     this.#documentWorkspaceContext.observe(
-      this.#documentWorkspaceContext.structure.contentTypeAliases,
-      async (contentTypeAliases) => {
-        if (contentTypeAliases.length === 0) return;
-        const contentTypeAlias = contentTypeAliases[0];
-        if (contentTypeAlias) {
-          await this.#applyPropertyGuards(contentTypeAlias);
+      observeMultiple([
+        this.#documentWorkspaceContext.structure.contentTypeLoaded,
+        this.#documentWorkspaceContext.structure.contentTypeAliases,
+      ]),
+      async ([contentTypeLoaded, contentTypeAliases]) => {
+        if (contentTypeLoaded && contentTypeAliases.length > 0) {
+          await this.#getPropertyGuards(contentTypeAliases);
+          await this.#applyPropertyGuards();
         }
       },
     );
   }
 
-  async #getPropertyGuards(contentTypeAlias: string) {
-    const { data, error } = await PropertyGuardService.getPropertyGuards({
-      query: { contentTypeAlias: contentTypeAlias },
+  async #getPropertyGuards(contentTypeAliases: string[]) {
+    this.#propertyGuards.clear();
+    this.#hasPropertyGuards.setValue(false);
+
+    const { data, error } = await PropertyGuardService.getPropertyGuardsByContentTypeAliases({
+      query: { contentTypeAliases: contentTypeAliases },
     });
 
     if (error) {
@@ -86,12 +99,7 @@ export class PropertyGuardWorkspaceContext extends UmbContextBase {
     }
   }
 
-  async #applyPropertyGuards(contentTypeAlias: string) {
-    this.#propertyGuards.clear();
-    this.#hasPropertyGuards.setValue(false);
-
-    await this.#getPropertyGuards(contentTypeAlias);
-
+  async #applyPropertyGuards() {
     const propertyGuards = this.#propertyGuards.getValue();
     if (propertyGuards.length === 0) return;
 

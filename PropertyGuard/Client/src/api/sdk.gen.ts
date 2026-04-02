@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetPropertyGuardsData, GetPropertyGuardsErrors, GetPropertyGuardsResponses } from './types.gen';
+import type { GetPropertyGuardsByContentTypeAliasData, GetPropertyGuardsByContentTypeAliasErrors, GetPropertyGuardsByContentTypeAliasesData, GetPropertyGuardsByContentTypeAliasesErrors, GetPropertyGuardsByContentTypeAliasesResponses, GetPropertyGuardsByContentTypeAliasResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -19,15 +19,28 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 export class PropertyGuardService {
-    public static getPropertyGuards<ThrowOnError extends boolean = false>(options?: Options<GetPropertyGuardsData, ThrowOnError>) {
-        return (options?.client ?? client).get<GetPropertyGuardsResponses, GetPropertyGuardsErrors, ThrowOnError>({
+    public static getPropertyGuardsByContentTypeAlias<ThrowOnError extends boolean = false>(options?: Options<GetPropertyGuardsByContentTypeAliasData, ThrowOnError>) {
+        return (options?.client ?? client).get<GetPropertyGuardsByContentTypeAliasResponses, GetPropertyGuardsByContentTypeAliasErrors, ThrowOnError>({
             security: [
                 {
                     scheme: 'bearer',
                     type: 'http'
                 }
             ],
-            url: '/umbraco/propertyguard/api/v1/GetPropertyGuards',
+            url: '/umbraco/propertyguard/api/v1/GetPropertyGuardsByContentTypeAlias',
+            ...options
+        });
+    }
+    
+    public static getPropertyGuardsByContentTypeAliases<ThrowOnError extends boolean = false>(options?: Options<GetPropertyGuardsByContentTypeAliasesData, ThrowOnError>) {
+        return (options?.client ?? client).get<GetPropertyGuardsByContentTypeAliasesResponses, GetPropertyGuardsByContentTypeAliasesErrors, ThrowOnError>({
+            security: [
+                {
+                    scheme: 'bearer',
+                    type: 'http'
+                }
+            ],
+            url: '/umbraco/propertyguard/api/v1/GetPropertyGuardsByContentTypeAliases',
             ...options
         });
     }

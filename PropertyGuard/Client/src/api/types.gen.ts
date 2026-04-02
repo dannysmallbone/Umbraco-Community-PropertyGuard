@@ -14,22 +14,22 @@ export type ProblemDetails = {
 };
 
 export type PropertyGuardDto = {
-    propertyAlias: string;
     contentTypeAlias: string;
+    propertyAlias: string;
     featureKey: string;
     message: string;
 };
 
-export type GetPropertyGuardsData = {
+export type GetPropertyGuardsByContentTypeAliasData = {
     body?: never;
     path?: never;
     query?: {
         contentTypeAlias?: string;
     };
-    url: '/umbraco/propertyguard/api/v1/GetPropertyGuards';
+    url: '/umbraco/propertyguard/api/v1/GetPropertyGuardsByContentTypeAlias';
 };
 
-export type GetPropertyGuardsErrors = {
+export type GetPropertyGuardsByContentTypeAliasErrors = {
     /**
      * Bad Request
      */
@@ -40,13 +40,44 @@ export type GetPropertyGuardsErrors = {
     401: unknown;
 };
 
-export type GetPropertyGuardsError = GetPropertyGuardsErrors[keyof GetPropertyGuardsErrors];
+export type GetPropertyGuardsByContentTypeAliasError = GetPropertyGuardsByContentTypeAliasErrors[keyof GetPropertyGuardsByContentTypeAliasErrors];
 
-export type GetPropertyGuardsResponses = {
+export type GetPropertyGuardsByContentTypeAliasResponses = {
     /**
      * OK
      */
     200: Array<PropertyGuardDto>;
 };
 
-export type GetPropertyGuardsResponse = GetPropertyGuardsResponses[keyof GetPropertyGuardsResponses];
+export type GetPropertyGuardsByContentTypeAliasResponse = GetPropertyGuardsByContentTypeAliasResponses[keyof GetPropertyGuardsByContentTypeAliasResponses];
+
+export type GetPropertyGuardsByContentTypeAliasesData = {
+    body?: never;
+    path?: never;
+    query?: {
+        contentTypeAliases?: Array<string>;
+    };
+    url: '/umbraco/propertyguard/api/v1/GetPropertyGuardsByContentTypeAliases';
+};
+
+export type GetPropertyGuardsByContentTypeAliasesErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+    /**
+     * The resource is protected and requires an authentication token
+     */
+    401: unknown;
+};
+
+export type GetPropertyGuardsByContentTypeAliasesError = GetPropertyGuardsByContentTypeAliasesErrors[keyof GetPropertyGuardsByContentTypeAliasesErrors];
+
+export type GetPropertyGuardsByContentTypeAliasesResponses = {
+    /**
+     * OK
+     */
+    200: Array<PropertyGuardDto>;
+};
+
+export type GetPropertyGuardsByContentTypeAliasesResponse = GetPropertyGuardsByContentTypeAliasesResponses[keyof GetPropertyGuardsByContentTypeAliasesResponses];

@@ -40,4 +40,17 @@ public class PropertyGuardService(
             return [];
         }
     }
+
+    public IEnumerable<PropertyGuardDto> GetPropertyGuards(string[] contentTypeAliases)
+    {
+        List<PropertyGuardDto> results = [];
+
+        foreach (string? contentTypeAlias in contentTypeAliases.Distinct())
+        {
+            IEnumerable<PropertyGuardDto> propertyGuards = GetPropertyGuards(contentTypeAlias);
+            results.AddRange(propertyGuards);
+        }
+
+        return results;
+    }
 }
