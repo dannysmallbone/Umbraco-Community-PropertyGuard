@@ -4,6 +4,7 @@ using PropertyGuard.Configuration;
 using PropertyGuard.Core;
 using PropertyGuard.Definitions;
 using PropertyGuard.NotificationHandlers;
+using PropertyGuard.Services;
 using Umbraco.Cms.Core.DependencyInjection;
 using Umbraco.Cms.Core.Notifications;
 
@@ -18,6 +19,8 @@ public static partial class UmbracoBuilderExtensions
             .Bind(builder.Config.GetSection(PropertyGuardSettings.ConfigName));
 
         builder.Services.TryAddSingleton<IPropertyGuardRegistry, PropertyGuardRegistry>();
+
+        builder.Services.AddScoped<IPropertyGuardService, PropertyGuardService>();
 
         builder.WithCollectionBuilder<PropertyGuardDefinitionCollectionBuilder>();
 

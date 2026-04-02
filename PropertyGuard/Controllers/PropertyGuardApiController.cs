@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using PropertyGuard.Core;
 using PropertyGuard.Dtos;
+using PropertyGuard.Services;
 using Umbraco.Cms.Api.Common.Builders;
 
 namespace PropertyGuard.Controllers;
@@ -12,10 +12,10 @@ namespace PropertyGuard.Controllers;
 [ApiExplorerSettings(GroupName = Constants.Name)]
 public class PropertyGuardApiController(
     ILogger<PropertyGuardApiController> logger,
-    IPropertyGuardRegistry propertyGuardRegistry) : PropertyGuardApiControllerBase
+    IPropertyGuardService propertyGuardService) : PropertyGuardApiControllerBase
 {
     private readonly ILogger<PropertyGuardApiController> _logger = logger;
-    private readonly IPropertyGuardRegistry _propertyGuardRegistry = propertyGuardRegistry;
+    private readonly IPropertyGuardService _propertyGuardService = propertyGuardService;
 
     [HttpGet("GetPropertyGuards")]
     [ProducesResponseType<List<PropertyGuardDto>>(StatusCodes.Status200OK)]
@@ -26,21 +26,9 @@ public class PropertyGuardApiController(
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(contentTypeAlias);
 
-            IReadOnlyDictionary<string, PropertyGuardEntry>? guards = _propertyGuardRegistry.GetPropertyGuards(contentTypeAlias);
-            if (guards == null || guards.Count == 0)
-            {
-                return Ok(new List<PropertyGuardDto>());
-            }
+            IEnumerable<PropertyGuardDto> propertyGuards = _propertyGuardService.GetPropertyGuards(contentTypeAlias);
 
-            IEnumerable<PropertyGuardDto> result = [.. guards.Select(kvp => new PropertyGuardDto
-            {
-                ContentTypeAlias = contentTypeAlias,
-                PropertyAlias = kvp.Key,
-                FeatureKey = kvp.Value.FeatureKey,
-                Message = kvp.Value.Message
-            })];
-
-            return Ok(result);
+            return Ok(propertyGuards);
         }
         catch (Exception ex)
         {
