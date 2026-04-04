@@ -6,4 +6,5 @@ public interface IPropertyGuardService
 {
     IEnumerable<PropertyGuardDto> GetPropertyGuards(string contentTypeAlias);
     IEnumerable<PropertyGuardDto> GetPropertyGuards(string[] contentTypeAliases);
+    IEnumerable<PropertyGuardDto> GetPropertyGuards();
 }

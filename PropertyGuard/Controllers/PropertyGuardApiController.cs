@@ -64,4 +64,25 @@ public class PropertyGuardApiController(
                 .Build());
         }
     }
+
+    [HttpGet("GetPropertyGuards")]
+    [ProducesResponseType<List<PropertyGuardDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public IActionResult GetPropertyGuards()
+    {
+        try
+        {
+            IEnumerable<PropertyGuardDto> propertyGuards = _propertyGuardService.GetPropertyGuards();
+            return Ok(propertyGuards);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get property guards");
+
+            return BadRequest(new ProblemDetailsBuilder()
+                .WithTitle("Error")
+                .WithDetail("Failed to load property guards")
+                .Build());
+        }
+    }
 }

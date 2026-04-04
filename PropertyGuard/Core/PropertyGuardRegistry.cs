@@ -17,6 +17,25 @@ public class PropertyGuardRegistry : IPropertyGuardRegistry
         return GetMap(contentTypeAlias)?.Guards;
     }
 
+    public IReadOnlyDictionary<(string ContentTypeAlias, string PropertyAlias), PropertyGuardEntry> GetAllPropertyGuards()
+    {
+        Dictionary<(string, string), PropertyGuardEntry> allGuards = [];
+
+        foreach (KeyValuePair<string, IPropertyGuardMap> propertyGuardEntry in _maps)
+        {
+            string contentTypeAlias = propertyGuardEntry.Key;
+            IReadOnlyDictionary<string, PropertyGuardEntry> guards = propertyGuardEntry.Value.Guards;
+
+            foreach (KeyValuePair<string, PropertyGuardEntry> guard in guards)
+            {
+                (string contentTypeAlias, string Key) key = (contentTypeAlias, guard.Key);
+                allGuards[key] = guard.Value;
+            }
+        }
+
+        return allGuards;
+    }
+
     public PropertyGuardRegistry RegisterGuard(string contentTypeAlias, IPropertyGuardMap map)
     {
         if (_maps.TryGetValue(contentTypeAlias, out IPropertyGuardMap? existing))

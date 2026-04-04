@@ -58,14 +58,45 @@ public class PropertyGuardService(
 
     public IEnumerable<PropertyGuardDto> GetPropertyGuards(string[] contentTypeAliases)
     {
-        List<PropertyGuardDto> results = [];
+        List<PropertyGuardDto> dtos = [];
 
         foreach (string? contentTypeAlias in contentTypeAliases.Distinct())
         {
             IEnumerable<PropertyGuardDto> propertyGuards = GetPropertyGuards(contentTypeAlias);
-            results.AddRange(propertyGuards);
+            dtos.AddRange(propertyGuards);
         }
 
-        return results;
+        return dtos;
+    }
+
+    public IEnumerable<PropertyGuardDto> GetPropertyGuards()
+    {
+        string cacheKey = $"{CachePrefix}All";
+
+        if (_cache.TryGetValue(cacheKey, out IEnumerable<PropertyGuardDto>? cached)) return cached!;
+
+        IReadOnlyDictionary<(string ContentTypeAlias, string PropertyAlias), PropertyGuardEntry> allGuards = _propertyGuardRegistry.GetAllPropertyGuards();
+
+        List<PropertyGuardDto> dtos = [.. allGuards.Select(guard =>
+        {
+            (string? contentTypeAlias, string? propertyAlias) = guard.Key;
+            PropertyGuardEntry value = guard.Value;
+
+            return new PropertyGuardDto
+            {
+                ContentTypeAlias = contentTypeAlias,
+                PropertyAlias = propertyAlias,
+                FeatureKey = value.FeatureKey,
+                Message = value.Message
+            };
+        })];
+
+        MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
+               .SetAbsoluteExpiration(TimeSpan.FromMinutes(5))
+               .SetSlidingExpiration(TimeSpan.FromMinutes(2));
+
+        _cache.Set(cacheKey, dtos, cacheOptions);
+
+        return dtos;
     }
 }
