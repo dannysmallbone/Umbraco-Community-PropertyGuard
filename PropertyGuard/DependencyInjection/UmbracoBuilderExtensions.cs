@@ -18,6 +18,8 @@ public static partial class UmbracoBuilderExtensions
             .AddOptions<PropertyGuardSettings>()
             .Bind(builder.Config.GetSection(PropertyGuardSettings.ConfigName));
 
+        builder.Services.AddMemoryCache();
+
         builder.Services.TryAddSingleton<IPropertyGuardRegistry, PropertyGuardRegistry>();
 
         builder.Services.AddScoped<IPropertyGuardService, PropertyGuardService>();

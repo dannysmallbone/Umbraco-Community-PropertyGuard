@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using PropertyGuard.Core;
 using PropertyGuard.Dtos;
 
@@ -6,11 +7,15 @@ namespace PropertyGuard.Services;
 
 public class PropertyGuardService(
     ILogger<PropertyGuardService> logger,
-    IPropertyGuardRegistry propertyGuardRegistry)
+    IPropertyGuardRegistry propertyGuardRegistry,
+    IMemoryCache cache)
     : IPropertyGuardService
 {
     private readonly ILogger<PropertyGuardService> _logger = logger;
     private readonly IPropertyGuardRegistry _propertyGuardRegistry = propertyGuardRegistry;
+    private readonly IMemoryCache _cache = cache;
+
+    private const string CachePrefix = "PropertyGuard_Guards_";
 
     public IEnumerable<PropertyGuardDto> GetPropertyGuards(string contentTypeAlias)
     {
@@ -18,20 +23,30 @@ public class PropertyGuardService(
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(contentTypeAlias);
 
+            string cacheKey = $"{CachePrefix}{contentTypeAlias}";
+
+            if (_cache.TryGetValue(cacheKey, out IEnumerable<PropertyGuardDto>? cached)) return cached!;
+
             IReadOnlyDictionary<string, PropertyGuardEntry> guards = _propertyGuardRegistry.GetPropertyGuards(contentTypeAlias)
                 ?? new Dictionary<string, PropertyGuardEntry>();
 
             if (guards.Count == 0) return [];
 
-            IEnumerable<PropertyGuardDto> results = guards.Select(guard => new PropertyGuardDto
+            IEnumerable<PropertyGuardDto> dtos = [.. guards.Select(guard => new PropertyGuardDto
             {
                 ContentTypeAlias = contentTypeAlias,
                 PropertyAlias = guard.Key,
                 FeatureKey = guard.Value.FeatureKey,
                 Message = guard.Value.Message,
-            });
+            })];
 
-            return results;
+            MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(5))
+                .SetSlidingExpiration(TimeSpan.FromMinutes(2));
+
+            _cache.Set(cacheKey, dtos, cacheOptions);
+
+            return dtos;
 
         }
         catch (Exception ex)
