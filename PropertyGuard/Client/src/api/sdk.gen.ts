@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetPropertyGuardsByContentTypeAliasData, GetPropertyGuardsByContentTypeAliasErrors, GetPropertyGuardsByContentTypeAliasesData, GetPropertyGuardsByContentTypeAliasesErrors, GetPropertyGuardsByContentTypeAliasesResponses, GetPropertyGuardsByContentTypeAliasResponses, GetPropertyGuardsData, GetPropertyGuardsErrors, GetPropertyGuardsResponses } from './types.gen';
+import type { GetPropertyGuardsByDocumentTypeAliasData, GetPropertyGuardsByDocumentTypeAliasErrors, GetPropertyGuardsByDocumentTypeAliasesData, GetPropertyGuardsByDocumentTypeAliasesErrors, GetPropertyGuardsByDocumentTypeAliasesResponses, GetPropertyGuardsByDocumentTypeAliasResponses, GetPropertyGuardsData, GetPropertyGuardsErrors, GetPropertyGuardsResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean> = Options2<TData, ThrowOnError> & {
     /**
@@ -32,28 +32,28 @@ export class PropertyGuardService {
         });
     }
     
-    public static getPropertyGuardsByContentTypeAlias<ThrowOnError extends boolean = false>(options?: Options<GetPropertyGuardsByContentTypeAliasData, ThrowOnError>) {
-        return (options?.client ?? client).get<GetPropertyGuardsByContentTypeAliasResponses, GetPropertyGuardsByContentTypeAliasErrors, ThrowOnError>({
+    public static getPropertyGuardsByDocumentTypeAlias<ThrowOnError extends boolean = false>(options?: Options<GetPropertyGuardsByDocumentTypeAliasData, ThrowOnError>) {
+        return (options?.client ?? client).get<GetPropertyGuardsByDocumentTypeAliasResponses, GetPropertyGuardsByDocumentTypeAliasErrors, ThrowOnError>({
             security: [
                 {
                     scheme: 'bearer',
                     type: 'http'
                 }
             ],
-            url: '/umbraco/propertyguard/api/v1/GetPropertyGuardsByContentTypeAlias',
+            url: '/umbraco/propertyguard/api/v1/GetPropertyGuardsByDocumentTypeAlias',
             ...options
         });
     }
     
-    public static getPropertyGuardsByContentTypeAliases<ThrowOnError extends boolean = false>(options?: Options<GetPropertyGuardsByContentTypeAliasesData, ThrowOnError>) {
-        return (options?.client ?? client).get<GetPropertyGuardsByContentTypeAliasesResponses, GetPropertyGuardsByContentTypeAliasesErrors, ThrowOnError>({
+    public static getPropertyGuardsByDocumentTypeAliases<ThrowOnError extends boolean = false>(options?: Options<GetPropertyGuardsByDocumentTypeAliasesData, ThrowOnError>) {
+        return (options?.client ?? client).get<GetPropertyGuardsByDocumentTypeAliasesResponses, GetPropertyGuardsByDocumentTypeAliasesErrors, ThrowOnError>({
             security: [
                 {
                     scheme: 'bearer',
                     type: 'http'
                 }
             ],
-            url: '/umbraco/propertyguard/api/v1/GetPropertyGuardsByContentTypeAliases',
+            url: '/umbraco/propertyguard/api/v1/GetPropertyGuardsByDocumentTypeAliases',
             ...options
         });
     }

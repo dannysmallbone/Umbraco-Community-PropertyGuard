@@ -17,24 +17,24 @@ public class PropertyGuardService(
 
     private const string CachePrefix = "PropertyGuard_Guards_";
 
-    public IEnumerable<PropertyGuardDto> GetPropertyGuards(string contentTypeAlias)
+    public IEnumerable<PropertyGuardDto> GetPropertyGuards(string documentTypeAlias)
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(contentTypeAlias);
+            ArgumentException.ThrowIfNullOrWhiteSpace(documentTypeAlias);
 
-            string cacheKey = $"{CachePrefix}{contentTypeAlias}";
+            string cacheKey = $"{CachePrefix}{documentTypeAlias}";
 
             if (_cache.TryGetValue(cacheKey, out IEnumerable<PropertyGuardDto>? cached)) return cached!;
 
-            IReadOnlyDictionary<string, PropertyGuardEntry> guards = _propertyGuardRegistry.GetPropertyGuards(contentTypeAlias)
+            IReadOnlyDictionary<string, PropertyGuardEntry> guards = _propertyGuardRegistry.GetPropertyGuards(documentTypeAlias)
                 ?? new Dictionary<string, PropertyGuardEntry>();
 
             if (guards.Count == 0) return [];
 
             IEnumerable<PropertyGuardDto> dtos = [.. guards.Select(guard => new PropertyGuardDto
             {
-                ContentTypeAlias = contentTypeAlias,
+                DocumentTypeAlias = documentTypeAlias,
                 PropertyAlias = guard.Key,
                 FeatureKey = guard.Value.FeatureKey,
                 Message = guard.Value.Message,
@@ -51,18 +51,18 @@ public class PropertyGuardService(
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get property guards for {contentTypeAlias}", contentTypeAlias);
+            _logger.LogError(ex, "Failed to get property guards for {documentTypeAlias}", documentTypeAlias);
             return [];
         }
     }
 
-    public IEnumerable<PropertyGuardDto> GetPropertyGuards(string[] contentTypeAliases)
+    public IEnumerable<PropertyGuardDto> GetPropertyGuards(string[] documentTypeAliases)
     {
         List<PropertyGuardDto> dtos = [];
 
-        foreach (string? contentTypeAlias in contentTypeAliases.Distinct())
+        foreach (string? documentTypeAlias in documentTypeAliases.Distinct())
         {
-            IEnumerable<PropertyGuardDto> propertyGuards = GetPropertyGuards(contentTypeAlias);
+            IEnumerable<PropertyGuardDto> propertyGuards = GetPropertyGuards(documentTypeAlias);
             dtos.AddRange(propertyGuards);
         }
 
@@ -75,16 +75,16 @@ public class PropertyGuardService(
 
         if (_cache.TryGetValue(cacheKey, out IEnumerable<PropertyGuardDto>? cached)) return cached!;
 
-        IReadOnlyDictionary<(string ContentTypeAlias, string PropertyAlias), PropertyGuardEntry> allGuards = _propertyGuardRegistry.GetAllPropertyGuards();
+        IReadOnlyDictionary<(string DocumentTypeAlias, string PropertyAlias), PropertyGuardEntry> allGuards = _propertyGuardRegistry.GetAllPropertyGuards();
 
         List<PropertyGuardDto> dtos = [.. allGuards.Select(guard =>
         {
-            (string? contentTypeAlias, string? propertyAlias) = guard.Key;
+            (string? documentTypeAlias, string? propertyAlias) = guard.Key;
             PropertyGuardEntry value = guard.Value;
 
             return new PropertyGuardDto
             {
-                ContentTypeAlias = contentTypeAlias,
+                DocumentTypeAlias = documentTypeAlias,
                 PropertyAlias = propertyAlias,
                 FeatureKey = value.FeatureKey,
                 Message = value.Message

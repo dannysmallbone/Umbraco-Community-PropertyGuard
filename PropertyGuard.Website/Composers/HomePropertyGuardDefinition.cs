@@ -13,7 +13,7 @@ public class HomePropertyGuardDefinition : IPropertyGuardDefinition
 
         PropertyGuardDto propertyGuard = new()
         {
-            ContentTypeAlias = "home",
+            DocumentTypeAlias = "home",
             PropertyAlias = "heroHeader",
             Message = "Property protected by code Property Guard"
         };
@@ -22,7 +22,7 @@ public class HomePropertyGuardDefinition : IPropertyGuardDefinition
             .RegisterGuard(propertyGuard)
             .RegisterGuard(new PropertyGuardDto
             {
-                ContentTypeAlias = "home",
+                DocumentTypeAlias = "home",
                 PropertyAlias = "heroDescription"
             });
 

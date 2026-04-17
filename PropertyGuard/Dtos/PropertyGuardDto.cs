@@ -2,7 +2,7 @@
 
 public class PropertyGuardDto
 {
-    public string ContentTypeAlias { get; set; } = string.Empty;
+    public string DocumentTypeAlias { get; set; } = string.Empty;
 
     public string PropertyAlias { get; set; } = string.Empty;
 

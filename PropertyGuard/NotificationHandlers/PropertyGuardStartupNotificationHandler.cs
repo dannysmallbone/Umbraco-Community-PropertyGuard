@@ -28,7 +28,7 @@ public class PropertyGuardStartupNotificationHandler(
 
         List<PropertyGuardDto> propertyGuards = _propertyGuardSettings.CurrentValue.Definitions;
 
-        IEnumerable<IGrouping<string, PropertyGuardDto>> grouped = propertyGuards.GroupBy(x => x.ContentTypeAlias, StringComparer.OrdinalIgnoreCase);
+        IEnumerable<IGrouping<string, PropertyGuardDto>> grouped = propertyGuards.GroupBy(x => x.DocumentTypeAlias, StringComparer.OrdinalIgnoreCase);
 
         foreach (IGrouping<string, PropertyGuardDto> group in grouped)
         {

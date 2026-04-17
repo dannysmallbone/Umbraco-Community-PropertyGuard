@@ -4,9 +4,9 @@ namespace PropertyGuard.Core;
 
 public interface IPropertyGuardRegistry
 {
-    IReadOnlyDictionary<(string ContentTypeAlias, string PropertyAlias), PropertyGuardEntry> GetAllPropertyGuards();
-    IPropertyGuardMap? GetMap(string contentTypeAlias);
-    IReadOnlyDictionary<string, PropertyGuardEntry>? GetPropertyGuards(string contentTypeAlias);
-    PropertyGuardRegistry RegisterGuard(string contentTypeAlias, IPropertyGuardMap map);
+    IReadOnlyDictionary<(string DocumentTypeAlias, string PropertyAlias), PropertyGuardEntry> GetAllPropertyGuards();
+    IPropertyGuardMap? GetMap(string documentTypeAlias);
+    IReadOnlyDictionary<string, PropertyGuardEntry>? GetPropertyGuards(string documentTypeAlias);
+    PropertyGuardRegistry RegisterGuard(string documentTypeAlias, IPropertyGuardMap map);
     PropertyGuardRegistry RegisterGuard(PropertyGuardDto propertyGuard);
 }

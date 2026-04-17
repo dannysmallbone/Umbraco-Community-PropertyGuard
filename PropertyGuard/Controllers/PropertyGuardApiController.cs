@@ -17,22 +17,22 @@ public class PropertyGuardApiController(
     private readonly ILogger<PropertyGuardApiController> _logger = logger;
     private readonly IPropertyGuardService _propertyGuardService = propertyGuardService;
 
-    [HttpGet("GetPropertyGuardsByContentTypeAlias")]
+    [HttpGet("GetPropertyGuardsByDocumentTypeAlias")]
     [ProducesResponseType<List<PropertyGuardDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    public IActionResult GetPropertyGuardsByContentTypeAlias(string contentTypeAlias)
+    public IActionResult GetPropertyGuardsByDocumentTypeAlias(string documentTypeAlias)
     {
         try
         {
-            ArgumentException.ThrowIfNullOrWhiteSpace(contentTypeAlias);
+            ArgumentException.ThrowIfNullOrWhiteSpace(documentTypeAlias);
 
-            IEnumerable<PropertyGuardDto> propertyGuards = _propertyGuardService.GetPropertyGuards(contentTypeAlias);
+            IEnumerable<PropertyGuardDto> propertyGuards = _propertyGuardService.GetPropertyGuards(documentTypeAlias);
 
             return Ok(propertyGuards);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get property guards for {contentTypeAlias}", contentTypeAlias);
+            _logger.LogError(ex, "Failed to get property guards for {documentTypeAlias}", documentTypeAlias);
 
             return BadRequest(new ProblemDetailsBuilder()
                 .WithTitle("Error")
@@ -41,22 +41,22 @@ public class PropertyGuardApiController(
         }
     }
 
-    [HttpGet("GetPropertyGuardsByContentTypeAliases")]
+    [HttpGet("GetPropertyGuardsByDocumentTypeAliases")]
     [ProducesResponseType<List<PropertyGuardDto>>(StatusCodes.Status200OK)]
     [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
-    public IActionResult GetPropertyGuardsByContentTypeAliases([FromQuery] string[] contentTypeAliases)
+    public IActionResult GetPropertyGuardsByDocumentTypeAliases([FromQuery] string[] documentTypeAliases)
     {
         try
         {
-            if (contentTypeAliases == null || contentTypeAliases.Length == 0) return Ok(new List<PropertyGuardDto>());
+            if (documentTypeAliases == null || documentTypeAliases.Length == 0) return Ok(new List<PropertyGuardDto>());
 
-            IEnumerable<PropertyGuardDto> propertyGuards = _propertyGuardService.GetPropertyGuards(contentTypeAliases);
+            IEnumerable<PropertyGuardDto> propertyGuards = _propertyGuardService.GetPropertyGuards(documentTypeAliases);
 
             return Ok(propertyGuards);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get property guards for {contentTypeAliases}", contentTypeAliases);
+            _logger.LogError(ex, "Failed to get property guards for {documentTypeAliases}", documentTypeAliases);
 
             return BadRequest(new ProblemDetailsBuilder()
                 .WithTitle("Error")

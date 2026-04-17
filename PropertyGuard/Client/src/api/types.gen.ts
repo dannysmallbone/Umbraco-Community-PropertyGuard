@@ -14,10 +14,10 @@ export type ProblemDetails = {
 };
 
 export type PropertyGuardDto = {
-    contentTypeAlias: string;
     propertyAlias: string;
     featureKey: string;
     message: string;
+    documentTypeAlias: string;
 };
 
 export type GetPropertyGuardsData = {
@@ -49,16 +49,16 @@ export type GetPropertyGuardsResponses = {
 
 export type GetPropertyGuardsResponse = GetPropertyGuardsResponses[keyof GetPropertyGuardsResponses];
 
-export type GetPropertyGuardsByContentTypeAliasData = {
+export type GetPropertyGuardsByDocumentTypeAliasData = {
     body?: never;
     path?: never;
     query?: {
-        contentTypeAlias?: string;
+        documentTypeAlias?: string;
     };
-    url: '/umbraco/propertyguard/api/v1/GetPropertyGuardsByContentTypeAlias';
+    url: '/umbraco/propertyguard/api/v1/GetPropertyGuardsByDocumentTypeAlias';
 };
 
-export type GetPropertyGuardsByContentTypeAliasErrors = {
+export type GetPropertyGuardsByDocumentTypeAliasErrors = {
     /**
      * Bad Request
      */
@@ -69,27 +69,27 @@ export type GetPropertyGuardsByContentTypeAliasErrors = {
     401: unknown;
 };
 
-export type GetPropertyGuardsByContentTypeAliasError = GetPropertyGuardsByContentTypeAliasErrors[keyof GetPropertyGuardsByContentTypeAliasErrors];
+export type GetPropertyGuardsByDocumentTypeAliasError = GetPropertyGuardsByDocumentTypeAliasErrors[keyof GetPropertyGuardsByDocumentTypeAliasErrors];
 
-export type GetPropertyGuardsByContentTypeAliasResponses = {
+export type GetPropertyGuardsByDocumentTypeAliasResponses = {
     /**
      * OK
      */
     200: Array<PropertyGuardDto>;
 };
 
-export type GetPropertyGuardsByContentTypeAliasResponse = GetPropertyGuardsByContentTypeAliasResponses[keyof GetPropertyGuardsByContentTypeAliasResponses];
+export type GetPropertyGuardsByDocumentTypeAliasResponse = GetPropertyGuardsByDocumentTypeAliasResponses[keyof GetPropertyGuardsByDocumentTypeAliasResponses];
 
-export type GetPropertyGuardsByContentTypeAliasesData = {
+export type GetPropertyGuardsByDocumentTypeAliasesData = {
     body?: never;
     path?: never;
     query?: {
-        contentTypeAliases?: Array<string>;
+        documentTypeAliases?: Array<string>;
     };
-    url: '/umbraco/propertyguard/api/v1/GetPropertyGuardsByContentTypeAliases';
+    url: '/umbraco/propertyguard/api/v1/GetPropertyGuardsByDocumentTypeAliases';
 };
 
-export type GetPropertyGuardsByContentTypeAliasesErrors = {
+export type GetPropertyGuardsByDocumentTypeAliasesErrors = {
     /**
      * Bad Request
      */
@@ -100,13 +100,13 @@ export type GetPropertyGuardsByContentTypeAliasesErrors = {
     401: unknown;
 };
 
-export type GetPropertyGuardsByContentTypeAliasesError = GetPropertyGuardsByContentTypeAliasesErrors[keyof GetPropertyGuardsByContentTypeAliasesErrors];
+export type GetPropertyGuardsByDocumentTypeAliasesError = GetPropertyGuardsByDocumentTypeAliasesErrors[keyof GetPropertyGuardsByDocumentTypeAliasesErrors];
 
-export type GetPropertyGuardsByContentTypeAliasesResponses = {
+export type GetPropertyGuardsByDocumentTypeAliasesResponses = {
     /**
      * OK
      */
     200: Array<PropertyGuardDto>;
 };
 
-export type GetPropertyGuardsByContentTypeAliasesResponse = GetPropertyGuardsByContentTypeAliasesResponses[keyof GetPropertyGuardsByContentTypeAliasesResponses];
+export type GetPropertyGuardsByDocumentTypeAliasesResponse = GetPropertyGuardsByDocumentTypeAliasesResponses[keyof GetPropertyGuardsByDocumentTypeAliasesResponses];

@@ -4,14 +4,14 @@ namespace PropertyGuard.Extensions;
 
 public static class PropertyGuardRegistryExtensions
 {
-    public static IPropertyGuardMap CreateGuard(this IPropertyGuardRegistry propertyGuardRegistry, string contentTypeAlias)
+    public static IPropertyGuardMap CreateGuard(this IPropertyGuardRegistry propertyGuardRegistry, string documentTypeAlias)
     {
-        IPropertyGuardMap? map = propertyGuardRegistry.GetMap(contentTypeAlias);
+        IPropertyGuardMap? map = propertyGuardRegistry.GetMap(documentTypeAlias);
 
         if (map == null)
         {
             map = new PropertyGuardMap();
-            propertyGuardRegistry.RegisterGuard(contentTypeAlias, map);
+            propertyGuardRegistry.RegisterGuard(documentTypeAlias, map);
         }
 
         return map;

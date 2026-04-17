@@ -53,7 +53,7 @@ export class PropertyGuardWorkspaceContext extends UmbContextBase {
   }
 
   private getPropertyGuardKey(propertyGuard: PropertyGuardDto): string {
-    return `${propertyGuard.contentTypeAlias}-${propertyGuard.propertyAlias}`.toLocaleLowerCase();
+    return `${propertyGuard.documentTypeAlias}-${propertyGuard.propertyAlias}`.toLocaleLowerCase();
   }
 
   async #observeContentType() {
@@ -64,21 +64,21 @@ export class PropertyGuardWorkspaceContext extends UmbContextBase {
         this.#documentWorkspaceContext.structure.contentTypeLoaded,
         this.#documentWorkspaceContext.structure.contentTypeAliases,
       ]),
-      async ([contentTypeLoaded, contentTypeAliases]) => {
-        if (contentTypeLoaded && contentTypeAliases.length > 0) {
-          await this.#getPropertyGuards(contentTypeAliases);
+      async ([contentTypeLoaded, documentTypeAliases]) => {
+        if (contentTypeLoaded && documentTypeAliases.length > 0) {
+          await this.#getPropertyGuards(documentTypeAliases);
           await this.#applyPropertyGuards();
         }
       },
     );
   }
 
-  async #getPropertyGuards(contentTypeAliases: string[]) {
+  async #getPropertyGuards(documentTypeAliases: string[]) {
     this.#propertyGuards.clear();
     this.#hasPropertyGuards.setValue(false);
 
-    const { data, error } = await PropertyGuardService.getPropertyGuardsByContentTypeAliases({
-      query: { contentTypeAliases: contentTypeAliases },
+    const { data, error } = await PropertyGuardService.getPropertyGuardsByDocumentTypeAliases({
+      query: { documentTypeAliases: documentTypeAliases },
     });
 
     if (error) {
