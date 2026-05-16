@@ -10,7 +10,7 @@ public class PropertyGuardMap : IPropertyGuardMap
 
     public IPropertyGuardMap Add(string propertyAlias, string? featureKey = null, string? message = null)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(propertyAlias);
+        if (string.IsNullOrWhiteSpace(propertyAlias)) return this;
 
         _guards[propertyAlias] = new PropertyGuardEntry(featureKey, message);
         return this;

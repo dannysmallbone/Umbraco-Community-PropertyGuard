@@ -14,10 +14,16 @@ export type ProblemDetails = {
 };
 
 export type PropertyGuardDto = {
+    documentTypeAlias: string;
     propertyAlias: string;
+    documentTypeUnique?: string | null;
+    propertyTypeUnique?: string | null;
+    documentTypeName?: string | null;
+    propertyTypeName?: string | null;
+    icon?: string | null;
     featureKey: string;
     message: string;
-    documentTypeAlias: string;
+    permissions: Array<string>;
 };
 
 export type GetPropertyGuardsData = {

@@ -2,19 +2,22 @@
 using Microsoft.Extensions.Logging;
 using PropertyGuard.Core;
 using PropertyGuard.Dtos;
+using Umbraco.Cms.Core.Models;
+using Umbraco.Cms.Core.Services;
 
 namespace PropertyGuard.Services;
 
 public class PropertyGuardService(
     ILogger<PropertyGuardService> logger,
     IPropertyGuardRegistry propertyGuardRegistry,
-    IMemoryCache cache)
+    IMemoryCache cache,
+    IContentTypeService contentTypeService)
     : IPropertyGuardService
 {
     private readonly ILogger<PropertyGuardService> _logger = logger;
     private readonly IPropertyGuardRegistry _propertyGuardRegistry = propertyGuardRegistry;
     private readonly IMemoryCache _cache = cache;
-
+    private readonly IContentTypeService _contentTypeService = contentTypeService;
     private const string CachePrefix = "PropertyGuard_Guards_";
 
     public IEnumerable<PropertyGuardDto> GetPropertyGuards(string documentTypeAlias)
@@ -82,10 +85,18 @@ public class PropertyGuardService(
             (string? documentTypeAlias, string? propertyAlias) = guard.Key;
             PropertyGuardEntry value = guard.Value;
 
+            IContentType? documentType = GetDocumentType(documentTypeAlias);
+            IPropertyType? propertyType = GetPropertyType(documentType, propertyAlias);
+
             return new PropertyGuardDto
             {
-                DocumentTypeAlias = documentTypeAlias,
-                PropertyAlias = propertyAlias,
+                DocumentTypeAlias = documentType?.Alias ?? documentTypeAlias,
+                PropertyAlias = propertyType?.Alias ?? propertyAlias,
+                DocumentTypeName = documentType?.Name,
+                PropertyTypeName = propertyType?.Name,
+                DocumentTypeUnique = documentType?.Key.ToString(),
+                PropertyTypeUnique = propertyType?.Key.ToString(),
+                Icon = documentType?.Icon,
                 FeatureKey = value.FeatureKey,
                 Message = value.Message
             };
@@ -98,5 +109,17 @@ public class PropertyGuardService(
         _cache.Set(cacheKey, dtos, cacheOptions);
 
         return dtos;
+    }
+
+    private IContentType? GetDocumentType(string documentTypeAlias)
+    {
+        IContentType? documentType = _contentTypeService.Get(documentTypeAlias);
+        return documentType;
+    }
+
+    private static IPropertyType? GetPropertyType(IContentType? contentType, string propertyAlias)
+    {
+        IPropertyType? propertyType = contentType?.PropertyTypes.FirstOrDefault(p => p.Alias.Equals(propertyAlias, StringComparison.OrdinalIgnoreCase));
+        return propertyType;
     }
 }
