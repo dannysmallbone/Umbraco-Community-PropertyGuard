@@ -1,11 +1,4 @@
-import {
-  css,
-  customElement,
-  html,
-  nothing,
-  repeat,
-  state,
-} from '@umbraco-cms/backoffice/external/lit';
+import { css, customElement, html, nothing, repeat, state } from '@umbraco-cms/backoffice/external/lit';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { UmbSectionViewElement } from '@umbraco-cms/backoffice/section';
 import { PROPERTYGUARD_CONTEXT } from '../../global-context/propertyguard-context';
@@ -15,10 +8,7 @@ import { UMB_DOCUMENT_PROPERTY_VALUE_USER_PERMISSION_FLOW_MODAL } from '@umbraco
 import { UmbDocumentTypeDetailRepository } from '@umbraco-cms/backoffice/document-type';
 
 @customElement('propertyguard-section-view')
-export class PropertyGuardSectionViewElement
-  extends UmbLitElement
-  implements UmbSectionViewElement
-{
+export class PropertyGuardSectionViewElement extends UmbLitElement implements UmbSectionViewElement {
   @state() private _propertyGuards: PropertyGuardDto[] = [];
   @state() private _selectedFeatureKey: string = '';
   @state() private _filteredPropertyGuards: PropertyGuardDto[] = [];
@@ -69,9 +59,7 @@ export class PropertyGuardSectionViewElement
     const groupSet = new Set<string>();
     this._propertyGuards
       .filter((propertyGuard) => propertyGuard.featureKey.startsWith(`${featureKey}.`))
-      .forEach((propertyGuard) =>
-        groupSet.add(propertyGuard.featureKey.split('.')[1] || 'General'),
-      );
+      .forEach((propertyGuard) => groupSet.add(propertyGuard.featureKey.split('.')[1] || 'General'));
 
     return Array.from(groupSet).sort();
   }
@@ -79,8 +67,7 @@ export class PropertyGuardSectionViewElement
   private _updateFilteredPropertyGuards() {
     this._filteredPropertyGuards = this._propertyGuards.filter((propertyGuard) => {
       const featureKeyMatch = propertyGuard.featureKey.startsWith(`${this._selectedFeatureKey}`);
-      const groupMatch =
-        (propertyGuard.featureKey.split('.')[1] || 'General') === this._selectedFeatureGroup;
+      const groupMatch = (propertyGuard.featureKey.split('.')[1] || 'General') === this._selectedFeatureGroup;
       return featureKeyMatch && groupMatch;
     });
   }
@@ -116,15 +103,11 @@ export class PropertyGuardSectionViewElement
       const value = await modal?.onSubmit();
 
       const documentTypeRepository = new UmbDocumentTypeDetailRepository(this);
-      const { data: documentType } = await documentTypeRepository.requestByUnique(
-        value.documentType.unique,
-      );
+      const { data: documentType } = await documentTypeRepository.requestByUnique(value.documentType.unique);
 
       if (!documentType) return;
 
-      const propertyType = documentType?.properties.find(
-        (p) => p.unique === value.propertyType.unique,
-      );
+      const propertyType = documentType?.properties.find((p) => p.unique === value.propertyType.unique);
 
       if (!propertyType) return;
 
@@ -195,9 +178,7 @@ export class PropertyGuardSectionViewElement
 
   #renderPropertyGuard(propertyGuard: PropertyGuardDto) {
     let icon = propertyGuard.propertyTypeUnique ? propertyGuard.icon : 'alert color-red';
-    let detail = propertyGuard.propertyTypeUnique
-      ? propertyGuard.permissions.join(',')
-      : 'Property not found!';
+    let detail = propertyGuard.propertyTypeUnique ? propertyGuard.permissions.join(',') : 'Property not found!';
 
     let name = this.createName(propertyGuard);
 

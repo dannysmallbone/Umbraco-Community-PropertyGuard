@@ -2,10 +2,7 @@ import { UmbContextBase } from '@umbraco-cms/backoffice/class-api';
 import { UmbContextToken } from '@umbraco-cms/backoffice/context-api';
 import { UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import { ProblemDetails, PropertyGuardDto, PropertyGuardService } from '../api';
-import {
-  UMB_NOTIFICATION_CONTEXT,
-  UmbNotificationContext,
-} from '@umbraco-cms/backoffice/notification';
+import { UMB_NOTIFICATION_CONTEXT, UmbNotificationContext } from '@umbraco-cms/backoffice/notification';
 import { UmbArrayState } from '@umbraco-cms/backoffice/observable-api';
 import { UMB_AUTH_CONTEXT } from '@umbraco-cms/backoffice/auth';
 import { client } from '../api/client.gen';
@@ -13,9 +10,7 @@ import { client } from '../api/client.gen';
 export class PropertyGuardContext extends UmbContextBase {
   #notificationContext?: UmbNotificationContext;
 
-  #propertyGuards = new UmbArrayState<PropertyGuardDto>([], (propertyGuard) =>
-    this.getPropertyGuardKey(propertyGuard),
-  );
+  #propertyGuards = new UmbArrayState<PropertyGuardDto>([], (propertyGuard) => this.getPropertyGuardKey(propertyGuard));
   propertyGuards = this.#propertyGuards.asObservable();
 
   constructor(host: UmbControllerHost) {
@@ -35,9 +30,7 @@ export class PropertyGuardContext extends UmbContextBase {
       const config = authContext.getOpenApiConfiguration();
 
       if (!config) {
-        console.warn(
-          'No OpenAPI configuration in auth context, Property Guard API will not be initialized',
-        );
+        console.warn('No OpenAPI configuration in auth context, Property Guard API will not be initialized');
         return;
       }
 

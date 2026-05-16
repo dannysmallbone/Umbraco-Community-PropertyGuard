@@ -11,10 +11,7 @@ export default class PropertyGuardWorkspaceHasGuardsCondition
   extends UmbConditionBase<UmbConditionConfigBase>
   implements UmbExtensionCondition
 {
-  constructor(
-    host: UmbControllerHost,
-    args: UmbConditionControllerArguments<UmbConditionConfigBase>,
-  ) {
+  constructor(host: UmbControllerHost, args: UmbConditionControllerArguments<UmbConditionConfigBase>) {
     super(host, args);
 
     this.consumeContext(PROPERTYGUARD_WORKSPACE_CONTEXT, (propertyGuardWorkspaceContext) => {
@@ -27,5 +24,4 @@ export default class PropertyGuardWorkspaceHasGuardsCondition
   }
 }
 
-export const PROPERTYGUARD_WORKSPACE_HAS_GUARDS_CONDITION_ALIAS =
-  'PropertyGuard.Condition.WorkspaceHasGuards';
+export const PROPERTYGUARD_WORKSPACE_HAS_GUARDS_CONDITION_ALIAS = 'PropertyGuard.Condition.WorkspaceHasGuards';

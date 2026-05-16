@@ -3,14 +3,8 @@ import { UmbContextToken } from '@umbraco-cms/backoffice/context-api';
 import { UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import { UmbArrayState, UmbBooleanState } from '@umbraco-cms/backoffice/observable-api';
 import { PropertyGuardDto } from '../api';
-import {
-  UMB_DOCUMENT_WORKSPACE_CONTEXT,
-  UmbDocumentWorkspaceContext,
-} from '@umbraco-cms/backoffice/document';
-import {
-  PROPERTYGUARD_CONTEXT,
-  PropertyGuardContext,
-} from '../global-context/propertyguard-context';
+import { UMB_DOCUMENT_WORKSPACE_CONTEXT, UmbDocumentWorkspaceContext } from '@umbraco-cms/backoffice/document';
+import { PROPERTYGUARD_CONTEXT, PropertyGuardContext } from '../global-context/propertyguard-context';
 import { UmbPropertyGuardRule } from '@umbraco-cms/backoffice/property';
 
 export class PropertyGuardWorkspaceContext extends UmbContextBase {
@@ -20,10 +14,7 @@ export class PropertyGuardWorkspaceContext extends UmbContextBase {
   #hasPropertyGuards = new UmbBooleanState(false);
   hasPropertyGuards = this.#hasPropertyGuards.asObservable();
 
-  #documentPropertyGuards = new UmbArrayState<PropertyGuardDto>(
-    [],
-    (propertyGuard) => propertyGuard.propertyTypeName,
-  );
+  #documentPropertyGuards = new UmbArrayState<PropertyGuardDto>([], (propertyGuard) => propertyGuard.propertyTypeName);
   documentPropertyGuards = this.#documentPropertyGuards.asObservable();
 
   constructor(host: UmbControllerHost) {

@@ -1,12 +1,5 @@
 import { UmbElementMixin } from '@umbraco-cms/backoffice/element-api';
-import {
-  css,
-  customElement,
-  html,
-  LitElement,
-  nothing,
-  repeat,
-} from '@umbraco-cms/backoffice/external/lit';
+import { css, customElement, html, LitElement, nothing, repeat } from '@umbraco-cms/backoffice/external/lit';
 import { PROPERTYGUARD_WORKSPACE_CONTEXT } from '../workspace-contexts/propertyguard-workspace-context';
 import { PropertyGuardDto } from '../api/types.gen';
 import { observeMultiple } from '@umbraco-cms/backoffice/observable-api';
@@ -45,9 +38,7 @@ export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElemen
   }
 
   render() {
-    return html`
-      <uui-box><div class="property-guards">${this.#renderPropertyGuards()}</div></uui-box>
-    `;
+    return html` <uui-box><div class="property-guards">${this.#renderPropertyGuards()}</div></uui-box> `;
   }
 
   #renderPropertyGuards() {
@@ -68,9 +59,7 @@ export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElemen
 
   #renderPropertyGuard(propertyGuard: PropertyGuardDto) {
     let icon = propertyGuard.propertyTypeUnique ? propertyGuard.icon : 'alert color-red';
-    let detail = propertyGuard.propertyTypeUnique
-      ? propertyGuard.permissions.join(',')
-      : 'Property not found!';
+    let detail = propertyGuard.propertyTypeUnique ? propertyGuard.permissions.join(',') : 'Property not found!';
 
     let name = this.createName(propertyGuard);
 
