@@ -8,7 +8,7 @@ public class Constants
 
     public const string ConfigName = "PropertyGuard";
 
-    public const string FeatureKey = "Global.PropertyGuards";
+    public const string FeatureKey = "PropertyGuards.General";
 
     public const string GuardMessage = "Property is protected by Property Guard";
 }

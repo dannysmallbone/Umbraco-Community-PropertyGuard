@@ -1,28 +1,30 @@
 import { UmbElementMixin } from '@umbraco-cms/backoffice/element-api';
-import { css, customElement, html, LitElement } from '@umbraco-cms/backoffice/external/lit';
-import { PROPERTYGUARD_WORKSPACE_CONTEXT } from '../workspaceContexts/propertyguard-workspace-context';
-import { PropertyGuardWorkspaceContext } from '../workspaceContexts/propertyguard-workspace-context';
-import { observeMultiple } from '@umbraco-cms/backoffice/observable-api';
+import {
+  css,
+  customElement,
+  html,
+  LitElement,
+  nothing,
+  repeat,
+} from '@umbraco-cms/backoffice/external/lit';
+import { PROPERTYGUARD_WORKSPACE_CONTEXT } from '../workspace-contexts/propertyguard-workspace-context';
 import { PropertyGuardDto } from '../api/types.gen';
+import { observeMultiple } from '@umbraco-cms/backoffice/observable-api';
 
 @customElement('propertyguard-workspace-view')
 export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElement) {
-  private _propertyGuardContext: PropertyGuardWorkspaceContext | undefined;
-
   private _propertyGuards: PropertyGuardDto[] = [];
 
   constructor() {
     super();
 
-    this.consumeContext(PROPERTYGUARD_WORKSPACE_CONTEXT, (propertyGuardContext) => {
-      if (!propertyGuardContext) return;
+    this.consumeContext(PROPERTYGUARD_WORKSPACE_CONTEXT, (propertyGuardWorkspaceContext) => {
+      if (!propertyGuardWorkspaceContext) return;
 
-      this._propertyGuardContext = propertyGuardContext;
-
-      this._propertyGuardContext.observe(
+      propertyGuardWorkspaceContext.observe(
         observeMultiple([
-          this._propertyGuardContext.hasPropertyGuards,
-          this._propertyGuardContext.propertyGuards,
+          propertyGuardWorkspaceContext.hasPropertyGuards,
+          propertyGuardWorkspaceContext.documentPropertyGuards,
         ]),
         ([hasPropertyGuards, propertyGuards]) => {
           if (hasPropertyGuards) {
@@ -33,26 +35,58 @@ export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElemen
     });
   }
 
+  private createName(item: PropertyGuardDto) {
+    const documentName = `${this.localize.string(item.documentTypeName ?? item.documentTypeAlias)}`;
+    const propertyName = item.propertyTypeName
+      ? `${this.localize.string(item.propertyTypeName)} (${item.propertyAlias})`
+      : `${item.propertyAlias}`;
+
+    return `${documentName}: ${propertyName}`;
+  }
+
   render() {
     return html`
-      <uui-box>
-        <uui-table>
-          <uui-table-head>
-            <uui-table-head-cell>
-              ${this.localize.term('general_name')}: [${this.localize.term('general_alias')}]
-            </uui-table-head-cell>
-            <uui-table-head-cell>${this.localize.term('general_message')}</uui-table-head-cell>
-          </uui-table-head>
-          ${this._propertyGuards.map(
-            (propertyGuards) => html`
-              <uui-table-row>
-                <uui-table-cell>${propertyGuards.propertyAlias}</uui-table-cell>
-                <uui-table-cell>${propertyGuards.message}</uui-table-cell>
-              </uui-table-row>
-            `,
+      <uui-box><div class="property-guards">${this.#renderPropertyGuards()}</div></uui-box>
+    `;
+  }
+
+  #renderPropertyGuards() {
+    if (!this._propertyGuards) return;
+
+    return html`
+      <div slot="editor">
+        <uui-ref-list>
+          ${repeat(
+            this._propertyGuards,
+            (propertyGuard) => `${propertyGuard.documentTypeAlias}-${propertyGuard.propertyAlias}`,
+            (propertyGuard) => this.#renderPropertyGuard(propertyGuard),
           )}
-        </uui-table>
-      </uui-box>
+        </uui-ref-list>
+      </div>
+    `;
+  }
+
+  #renderPropertyGuard(propertyGuard: PropertyGuardDto) {
+    let icon = propertyGuard.propertyTypeUnique ? propertyGuard.icon : 'alert color-red';
+    let detail = propertyGuard.propertyTypeUnique
+      ? propertyGuard.permissions.join(',')
+      : 'Property not found!';
+
+    let name = this.createName(propertyGuard);
+
+    return html`
+      <uui-ref-node-document-type
+        name=${name}
+        alias=${detail}
+        .detail=${propertyGuard.propertyTypeUnique ? propertyGuard.message : ''}
+        readonly
+      >
+        ${icon ? html`<umb-icon slot="icon" name=${icon}></umb-icon>` : nothing}
+        <h1 slot="default">Help</h1>
+        <uui-tag slot="tag" color=${propertyGuard.propertyTypeUnique ? 'default' : 'danger'}
+          >${propertyGuard.featureKey}</uui-tag
+        >
+      </uui-ref-node-document-type>
     `;
   }
 
@@ -61,10 +95,6 @@ export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElemen
       :host {
         display: block;
         padding: var(--uui-size-layout-1);
-      }
-
-      uui-box {
-        --uui-box-default-padding: 0;
       }
     `,
   ];

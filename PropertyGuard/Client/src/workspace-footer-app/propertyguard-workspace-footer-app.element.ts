@@ -1,27 +1,20 @@
 import { UmbElementMixin } from '@umbraco-cms/backoffice/element-api';
 import { css, customElement, html, LitElement, state } from '@umbraco-cms/backoffice/external/lit';
-import {
-  PROPERTYGUARD_WORKSPACE_CONTEXT,
-  PropertyGuardWorkspaceContext,
-} from '../workspaceContexts/propertyguard-workspace-context';
+import { PROPERTYGUARD_WORKSPACE_CONTEXT } from '../workspace-contexts/propertyguard-workspace-context';
 
 @customElement('propertyguard-footer-app')
 export class PropertyGuardFooterAppElement extends UmbElementMixin(LitElement) {
-  @state() _hasPropertyGuards: boolean | undefined;
-  private _propertyGuardContext: PropertyGuardWorkspaceContext | undefined;
+  @state() _hasPropertyGuards: boolean = false;
 
   constructor() {
     super();
 
     this.consumeContext(PROPERTYGUARD_WORKSPACE_CONTEXT, (propertyGuardContext) => {
-      this._propertyGuardContext = propertyGuardContext;
+      if (!propertyGuardContext) return;
 
-      this._propertyGuardContext?.observe(
-        this._propertyGuardContext.hasPropertyGuards,
-        (hasPropertyGuards) => {
-          this._hasPropertyGuards = hasPropertyGuards;
-        },
-      );
+      propertyGuardContext.observe(propertyGuardContext.hasPropertyGuards, (hasPropertyGuards) => {
+        this._hasPropertyGuards = hasPropertyGuards;
+      });
     });
   }
 

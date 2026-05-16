@@ -5,7 +5,7 @@ import {
   UmbExtensionCondition,
 } from '@umbraco-cms/backoffice/extension-api';
 import { UmbConditionBase } from '@umbraco-cms/backoffice/extension-registry';
-import { PROPERTYGUARD_WORKSPACE_CONTEXT } from '../workspaceContexts/propertyguard-workspace-context';
+import { PROPERTYGUARD_WORKSPACE_CONTEXT } from '../workspace-contexts/propertyguard-workspace-context';
 
 export default class PropertyGuardWorkspaceHasGuardsCondition
   extends UmbConditionBase<UmbConditionConfigBase>
@@ -17,10 +17,10 @@ export default class PropertyGuardWorkspaceHasGuardsCondition
   ) {
     super(host, args);
 
-    this.consumeContext(PROPERTYGUARD_WORKSPACE_CONTEXT, (propertyGuardContext) => {
-      if (!propertyGuardContext) return;
+    this.consumeContext(PROPERTYGUARD_WORKSPACE_CONTEXT, (propertyGuardWorkspaceContext) => {
+      if (!propertyGuardWorkspaceContext) return;
 
-      this.observe(propertyGuardContext.hasPropertyGuards, (hasPropertyGuards) => {
+      this.observe(propertyGuardWorkspaceContext.hasPropertyGuards, (hasPropertyGuards) => {
         this.permitted = hasPropertyGuards;
       });
     });
