@@ -6,15 +6,16 @@ import { PropertyGuardDto } from '../../api/types.gen';
 import { UMB_MODAL_MANAGER_CONTEXT } from '@umbraco-cms/backoffice/modal';
 import { UMB_DOCUMENT_PROPERTY_VALUE_USER_PERMISSION_FLOW_MODAL } from '@umbraco-cms/backoffice/document';
 import { UmbDocumentTypeDetailRepository } from '@umbraco-cms/backoffice/document-type';
+import { DEFAULT_FEATURE, DEFAULT_GROUP } from '../../constants';
 
 @customElement('propertyguard-section-view')
 export class PropertyGuardSectionViewElement extends UmbLitElement implements UmbSectionViewElement {
   @state() private _propertyGuards: PropertyGuardDto[] = [];
-  @state() private _selectedFeatureKey: string = '';
+  @state() private _selectedFeatureKey: string = DEFAULT_FEATURE;
   @state() private _filteredPropertyGuards: PropertyGuardDto[] = [];
-  @state() private _selectedFeatureGroup: string = '';
-  @state() private _featureKeys: string[] = [];
-  @state() private _featureGroups: string[] = [];
+  @state() private _selectedFeatureGroup: string = DEFAULT_GROUP;
+  @state() private _featureKeys: string[] = [DEFAULT_FEATURE];
+  @state() private _featureGroups: string[] = [DEFAULT_GROUP];
 
   constructor() {
     super();
@@ -24,12 +25,17 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
 
       propertyGuardContext.observe(propertyGuardContext.propertyGuards, (propertyGuards) => {
         this._propertyGuards = propertyGuards;
-        this._featureKeys = this._getFeatureKeys();
+        this._featureKeys = [...new Set([this._selectedFeatureKey, ...this._getFeatureKeys()])];
 
-        if (this._featureKeys.length > 0) {
+        if (!this._featureKeys.includes(this._selectedFeatureKey)) {
           this._selectedFeatureKey = this._featureKeys[0];
-          this._featureGroups = this._getGroupsForFeature(this._selectedFeatureKey);
-          if (this._featureGroups.length > 0) this._selectedFeatureGroup = this._featureGroups[0];
+        }
+
+        const groupsFromGuards = this._getGroupsForFeature(this._selectedFeatureKey);
+        this._featureGroups = [...new Set([this._selectedFeatureGroup, ...groupsFromGuards])];
+
+        if (!this._featureGroups.includes(this._selectedFeatureGroup)) {
+          this._selectedFeatureGroup = this._featureGroups[0];
         }
       });
     });
@@ -131,8 +137,6 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
   }
 
   render() {
-    if (!this._propertyGuards.length) return this.#renderNoPropertyGuards();
-
     return html`
       <uui-box headline="Property Guards">
         <div class="container">
@@ -166,7 +170,7 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
   #renderAddButton() {
     return html`
       <uui-button
-        id="btn-add"
+        class="btn-add"
         look="placeholder"
         label=${this.localize.term('general_add')}
         @click=${this.#addpropertyGuard}
@@ -192,17 +196,24 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
   #renderTabs(): unknown {
     const groups = this._featureGroups;
 
-    return html`<uui-tab-group>
-      ${groups.map(
-        (group) => html`
-          <uui-tab
-            label=${group}
-            ?active=${this._selectedFeatureGroup === group}
-            @click=${() => (this._selectedFeatureGroup = group)}
-          ></uui-tab>
-        `,
-      )}
-    </uui-tab-group>`;
+    return html`
+      <div class="tab-bar">
+        <uui-tab-group>
+          ${groups.map(
+            (group) => html`
+              <uui-tab
+                label=${group}
+                ?active=${this._selectedFeatureGroup === group}
+                @click=${() => (this._selectedFeatureGroup = group)}
+              ></uui-tab>
+            `,
+          )}
+          <uui-tab class="btn-add">
+            <uui-icon slot="icon" name="add"></uui-icon>
+          </uui-tab>
+        </uui-tab-group>
+      </div>
+    `;
   }
 
   #renderSidebar() {
@@ -222,12 +233,16 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
             </uui-menu-item>
           `,
         )}
+        <uui-button
+          class="btn-add"
+          look="placeholder"
+          label=${this.localize.term('general_add')}
+          @click=${this.#addpropertyGuard}
+        >
+          <uui-icon name="add"></uui-icon>
+        </uui-button>
       </div>
     `;
-  }
-
-  #renderNoPropertyGuards() {
-    return html`<h2 class="no-property-guards">No property guards have been created yet</h2>`;
   }
 
   static override styles = [
@@ -253,6 +268,7 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
       }
 
       .sidebar {
+        padding: var(--uui-size-space-5, 18px);
         border-right: 1px solid var(--uui-color-divider-standalone, #e9e9eb);
       }
 
@@ -269,8 +285,13 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
         padding: var(--uui-size-space-5, 18px);
       }
 
-      #btn-add {
+      .btn-add {
         width: 100%;
+
+        uui-icon {
+          font-size: var(--uui-font-size);
+          margin: 0;
+        }
       }
     `,
   ];

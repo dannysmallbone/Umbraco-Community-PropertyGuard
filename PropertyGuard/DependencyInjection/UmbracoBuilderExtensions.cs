@@ -28,6 +28,8 @@ public static partial class UmbracoBuilderExtensions
 
         builder.AddNotificationHandler<UmbracoApplicationStartedNotification, PropertyGuardStartupNotificationHandler>();
 
+        builder.AddNotificationHandler<ContentSavingNotification, PropertyGuardSavingNotificationHandler>();
+
         return builder;
     }
 

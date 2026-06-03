@@ -1,4 +1,5 @@
-﻿using Umbraco.Cms.Core.Composing;
+﻿using PropertyGuard.DependencyInjection;
+using Umbraco.Cms.Core.Composing;
 
 namespace PropertyGuard.Website.Composers;
 
@@ -9,7 +10,7 @@ public class PropertyGuardComposer : IComposer
         // Composer Example
 
         //builder.AddPropertyGuard();
-        //builder.AddPropertyGuard<HomePropertyGuardDefinition>();
+        builder.AddPropertyGuard<HomePropertyGuardDefinition>();
         //builder.WithCollectionBuilder<PropertyGuardDefinitionCollectionBuilder>()
         //    .Add<HomePropertyGuardDefinition>();
     }
