@@ -25,4 +25,6 @@ public class PropertyGuardDto
     public List<string> Permissions { get; set; } = ["Read"];
 
     public PropertyGuardSource Source { get; set; } = PropertyGuardSource.Code;
+
+    public PropertyGuardMode Mode { get; set; } = PropertyGuardMode.ReadOnly;
 }

@@ -8,71 +8,75 @@ import { PROPERTYGUARD_CONTEXT, PropertyGuardContext } from '../global-context/p
 import { UmbPropertyGuardRule } from '@umbraco-cms/backoffice/property';
 
 export class PropertyGuardWorkspaceContext extends UmbContextBase {
-  #propertyGuardContextContext?: PropertyGuardContext;
+  #propertyGuardContext?: PropertyGuardContext;
   #documentWorkspaceContext?: UmbDocumentWorkspaceContext;
+  #currentContentTypeAliases: string[] = [];
 
   #hasPropertyGuards = new UmbBooleanState(false);
   hasPropertyGuards = this.#hasPropertyGuards.asObservable();
 
-  #documentPropertyGuards = new UmbArrayState<PropertyGuardDto>([], (propertyGuard) => propertyGuard.propertyTypeName);
+  #documentPropertyGuards = new UmbArrayState<PropertyGuardDto>([], (g) => g.propertyAlias);
   documentPropertyGuards = this.#documentPropertyGuards.asObservable();
 
   constructor(host: UmbControllerHost) {
     super(host, PROPERTYGUARD_WORKSPACE_CONTEXT);
-    console.log('Property Guards enabled! 🛡️');
 
-    this.consumeContext(PROPERTYGUARD_CONTEXT, (propertyGuardContextContext) => {
-      this.#propertyGuardContextContext = propertyGuardContextContext;
+    this.consumeContext(PROPERTYGUARD_CONTEXT, (propertyGuardContext) => {
+      if (!propertyGuardContext) return;
+      this.#propertyGuardContext = propertyGuardContext;
+
+      this.observe(propertyGuardContext.propertyGuards, () => this.#applyGuards(), '_propertyGuardsObserver');
     });
 
-    this.consumeContext(UMB_DOCUMENT_WORKSPACE_CONTEXT, (documentWorkspaceContext) => {
+    this.consumeContext(UMB_DOCUMENT_WORKSPACE_CONTEXT, async (documentWorkspaceContext) => {
+      if (!documentWorkspaceContext) return;
       this.#documentWorkspaceContext = documentWorkspaceContext;
 
-      if (!this.#documentWorkspaceContext) return;
+      await documentWorkspaceContext.structure.whenLoaded();
 
-      this.#documentWorkspaceContext.structure
-        .whenLoaded()
-        .then(() => this.#updateAndApplyDocumentPropertyGuards())
-        .catch((err) => {
-          console.error('Failed to load workspace structure for Property Guard:', err);
-        });
+      this.observe(
+        documentWorkspaceContext.structure.contentTypeAliases,
+        (aliases) => {
+          this.#currentContentTypeAliases = aliases;
+          this.#applyGuards();
+        },
+        '_contentTypeAliasesObserver',
+      );
     });
   }
 
-  #updateAndApplyDocumentPropertyGuards() {
-    if (!this.#documentWorkspaceContext) return;
+  #applyGuards() {
+    if (!this.#documentWorkspaceContext || !this.#propertyGuardContext) return;
+    if (!this.#currentContentTypeAliases.length) return;
 
-    this.#documentWorkspaceContext.observe(
-      this.#documentWorkspaceContext.structure.contentTypeAliases,
-      (contentTypeAliases) => {
-        if (contentTypeAliases.length > 0) {
-          if (!this.#propertyGuardContextContext) return;
+    const guards = this.#propertyGuardContext.getPropertyGuardsForDocumentTypes(this.#currentContentTypeAliases);
 
-          const documentPropertyGuards =
-            this.#propertyGuardContextContext.getPropertyGuardsForDocumentTypes(contentTypeAliases);
+    this.#documentPropertyGuards.setValue(guards);
+    this.#hasPropertyGuards.setValue(guards.length > 0);
 
-          this.#documentPropertyGuards.setValue(documentPropertyGuards);
-          this.#hasPropertyGuards.setValue(documentPropertyGuards.length > 0);
+    for (const guard of guards) {
+      if (!guard.propertyTypeUnique) continue;
 
-          this.#applyDocumentPropertyGuards();
-        }
-      },
-    );
-  }
+      const permissions = guard.permissions ?? ['Read'];
 
-  #applyDocumentPropertyGuards() {
-    if (!this.#documentWorkspaceContext) return;
-
-    for (const propertyGuard of this.#documentPropertyGuards.getValue()) {
-      if (propertyGuard.propertyTypeUnique) {
-        const propertyGuardRule: UmbPropertyGuardRule = {
-          unique: `propertyguard-${propertyGuard.documentTypeAlias}-${propertyGuard.propertyTypeName}`,
+      if (!permissions.includes('Read')) {
+        const viewRule: UmbPropertyGuardRule = {
+          unique: `propertyguard-view-${guard.documentTypeAlias}-${guard.propertyAlias}`,
           permitted: false,
-          message: propertyGuard.message,
-          propertyType: { unique: propertyGuard.propertyTypeUnique },
+          message: guard.message,
+          propertyType: { unique: guard.propertyTypeUnique },
         };
+        this.#documentWorkspaceContext.propertyViewGuard.addRule(viewRule);
+      }
 
-        this.#documentWorkspaceContext.propertyWriteGuard.addRule(propertyGuardRule);
+      if (!permissions.includes('Write')) {
+        const writeRule: UmbPropertyGuardRule = {
+          unique: `propertyguard-write-${guard.documentTypeAlias}-${guard.propertyAlias}`,
+          permitted: false,
+          message: guard.message,
+          propertyType: { unique: guard.propertyTypeUnique },
+        };
+        this.#documentWorkspaceContext.propertyWriteGuard.addRule(writeRule);
       }
     }
   }

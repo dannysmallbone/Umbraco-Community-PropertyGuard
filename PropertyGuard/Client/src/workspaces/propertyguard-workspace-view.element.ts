@@ -14,16 +14,15 @@ export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElemen
     this.consumeContext(PROPERTYGUARD_WORKSPACE_CONTEXT, (propertyGuardWorkspaceContext) => {
       if (!propertyGuardWorkspaceContext) return;
 
-      propertyGuardWorkspaceContext.observe(
+      this.observe(
         observeMultiple([
           propertyGuardWorkspaceContext.hasPropertyGuards,
           propertyGuardWorkspaceContext.documentPropertyGuards,
         ]),
         ([hasPropertyGuards, propertyGuards]) => {
-          if (hasPropertyGuards) {
-            this._propertyGuards = propertyGuards;
-          }
+          this._propertyGuards = hasPropertyGuards ? propertyGuards : [];
         },
+        '_workspaceGuardsObserver',
       );
     });
   }
@@ -55,15 +54,19 @@ export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElemen
     `;
   }
 
+  #modeLabel(permissions: string[]): string {
+    return permissions.includes('Read') ? 'Read Only' : 'Hidden';
+  }
+
   #renderPropertyGuard(propertyGuard: PropertyGuardDto) {
     const icon = propertyGuard.propertyTypeUnique ? propertyGuard.icon : 'alert color-red';
-    const detail = propertyGuard.propertyTypeUnique ? propertyGuard.permissions.join(', ') : 'Property not found!';
+    const alias = propertyGuard.propertyTypeUnique ? this.#modeLabel(propertyGuard.permissions) : 'Property not found!';
     const name = this.#createName(propertyGuard);
 
     return html`
       <uui-ref-node-document-type
         name=${name}
-        alias=${detail}
+        alias=${alias}
         .detail=${propertyGuard.propertyTypeUnique ? propertyGuard.message : ''}
         readonly
       >

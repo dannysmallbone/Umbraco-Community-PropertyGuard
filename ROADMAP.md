@@ -35,7 +35,7 @@ The Guards section is already hidden from users whose user group does not includ
 | Phase | Item | Status |
 |---|---|---|
 | 1 | Backend enforcement (ContentSavingNotification handler) | ✅ Done |
-| 2 | UI — layout, inline add flow, remove, Save (local state only) | Pending |
+| 2 | UI — layout, inline add flow, remove, Save (local state only) | ✅ Done |
 | 3 | Backend — RemoveGuard + JSON persistence + management API endpoints | Pending |
 | 4 | Wire up — connect UI to Phase 3 API endpoints | Pending |
 | 5 | Tests & CI/CD | Pending |

@@ -35,16 +35,26 @@ public class PropertyGuardService(
 
             if (guards.Count == 0) return [];
 
-            IEnumerable<PropertyGuardDto> dtos = [.. guards.Select(guard => new PropertyGuardDto
+            IContentType? documentType = _contentTypeService.Get(documentTypeAlias);
+
+            IEnumerable<PropertyGuardDto> dtos = [.. guards.Select(guard =>
             {
-                DocumentTypeAlias = documentTypeAlias,
-                PropertyAlias = guard.Key,
-                FeatureKey = guard.Value.FeatureKey,
-                Message = guard.Value.Message,
-                Source = guard.Value.Source,
+                IPropertyType? propertyType = FindPropertyType(documentType, guard.Key);
+
+                return new PropertyGuardDto
+                {
+                    DocumentTypeAlias = documentType?.Alias ?? documentTypeAlias,
+                    PropertyAlias = propertyType?.Alias ?? guard.Key,
+                    PropertyTypeUnique = propertyType?.Key.ToString(),
+                    FeatureKey = guard.Value.FeatureKey,
+                    Message = guard.Value.Message,
+                    Source = guard.Value.Source,
+                    Mode = guard.Value.Mode,
+                    Permissions = guard.Value.Mode.ToPermissions(),
+                };
             })];
 
-                _cache.Set(cacheKey, dtos, CreateCacheOptions());
+            _cache.Set(cacheKey, dtos, CreateCacheOptions());
 
             return dtos;
 
@@ -73,7 +83,7 @@ public class PropertyGuardService(
             PropertyGuardEntry value = guard.Value;
 
             IContentType? documentType = _contentTypeService.Get(documentTypeAlias);
-            IPropertyType? propertyType = documentType?.PropertyTypes.FirstOrDefault(p => p.Alias.Equals(propertyAlias, StringComparison.OrdinalIgnoreCase));
+            IPropertyType? propertyType = FindPropertyType(documentType, propertyAlias);
 
             return new PropertyGuardDto
             {
@@ -87,12 +97,32 @@ public class PropertyGuardService(
                 FeatureKey = value.FeatureKey,
                 Message = value.Message,
                 Source = value.Source,
+                Mode = value.Mode,
+                Permissions = value.Mode.ToPermissions(),
             };
         })];
 
         _cache.Set(cacheKey, dtos, CreateCacheOptions());
 
         return dtos;
+    }
+
+    private static IPropertyType? FindPropertyType(IContentTypeComposition? contentType, string propertyAlias)
+    {
+        if (contentType is null) return null;
+
+        IPropertyType? found = contentType.PropertyTypes
+            .FirstOrDefault(p => p.Alias.Equals(propertyAlias, StringComparison.OrdinalIgnoreCase));
+
+        if (found is not null) return found;
+
+        foreach (IContentTypeComposition composition in contentType.ContentTypeComposition)
+        {
+            found = FindPropertyType(composition, propertyAlias);
+            if (found is not null) return found;
+        }
+
+        return null;
     }
 
     private static MemoryCacheEntryOptions CreateCacheOptions() =>

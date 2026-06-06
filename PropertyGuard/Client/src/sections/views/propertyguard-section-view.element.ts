@@ -21,7 +21,7 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
   @state() private _selectedFeatureKey: string = DEFAULT_FEATURE;
   @state() private _filteredPropertyGuards: PropertyGuardDto[] = [];
   @state() private _selectedFeatureGroup: string = '';
-  @state() private _featureKeys: string[] = [DEFAULT_FEATURE];
+  @state() private _featureKeys: string[] = [];
   @state() private _featureGroups: string[] = [];
   @state() private _addingFeature = false;
   @state() private _pendingFeatureName = '';
@@ -35,17 +35,25 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
     this.consumeContext(PROPERTYGUARD_CONTEXT, (propertyGuardContext) => {
       if (!propertyGuardContext) return;
 
-      propertyGuardContext.observe(propertyGuardContext.propertyGuards, (propertyGuards) => {
-        const uiGuards = this._propertyGuards.filter((g) => g.source === 'Ui');
-        this._propertyGuards = [...propertyGuards, ...uiGuards];
-        this._featureKeys = [...new Set([this._selectedFeatureKey, ...this._getFeatureKeys()])];
+      this.observe(
+        propertyGuardContext.propertyGuards,
+        (propertyGuards) => {
+          const uiGuards = this._propertyGuards.filter((g) => g.source === 'Ui');
+          this._propertyGuards = [...propertyGuards, ...uiGuards];
+          this._featureKeys = this._getFeatureKeys();
 
-        this._featureGroups = this._getGroupsForFeature(this._selectedFeatureKey);
+          if (!this._featureKeys.includes(this._selectedFeatureKey) && this._featureKeys.length > 0) {
+            this._selectedFeatureKey = this._featureKeys[0];
+          }
 
-        if (!this._featureGroups.includes(this._selectedFeatureGroup)) {
-          this._selectedFeatureGroup = this._featureGroups[0] ?? '';
-        }
-      });
+          this._featureGroups = this._getGroupsForFeature(this._selectedFeatureKey);
+
+          if (!this._featureGroups.includes(this._selectedFeatureGroup)) {
+            this._selectedFeatureGroup = this._featureGroups[0] ?? '';
+          }
+        },
+        '_propertyGuardsObserver',
+      );
     });
   }
 
@@ -262,9 +270,13 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
     `;
   }
 
+  #modeLabel(permissions: string[]): string {
+    return permissions.includes('Read') ? 'Read Only' : 'Hidden';
+  }
+
   #renderPropertyGuard(propertyGuard: PropertyGuardDto) {
     const icon = propertyGuard.propertyTypeUnique ? propertyGuard.icon : 'alert color-red';
-    const alias = propertyGuard.propertyTypeUnique ? propertyGuard.permissions.join(', ') : 'Property not found!';
+    const alias = propertyGuard.propertyTypeUnique ? this.#modeLabel(propertyGuard.permissions) : 'Property not found!';
     const name = this.#createName(propertyGuard);
 
     return html`
@@ -448,14 +460,15 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
   async #copyConfig() {
     const uiGuards = this._propertyGuards.filter((g) => g.source === 'Ui');
     const definitions = uiGuards.map((g) => {
+      const mode = g.permissions.includes('Read') ? 'ReadOnly' : 'Hidden';
       const entry: Record<string, unknown> = {
         DocumentTypeAlias: g.documentTypeAlias,
         PropertyAlias: g.propertyAlias,
         FeatureKey: g.featureKey,
         Message: g.message,
       };
-      if (!(g.permissions.length === 1 && g.permissions[0] === 'Read')) {
-        entry['Permissions'] = g.permissions;
+      if (mode !== 'ReadOnly') {
+        entry['Mode'] = mode;
       }
       return entry;
     });

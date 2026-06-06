@@ -22,7 +22,7 @@ public static partial class UmbracoBuilderExtensions
 
         builder.Services.TryAddSingleton<IPropertyGuardRegistry, PropertyGuardRegistry>();
 
-        builder.Services.AddScoped<IPropertyGuardService, PropertyGuardService>();
+        builder.Services.TryAddScoped<IPropertyGuardService, PropertyGuardService>();
 
         builder.WithCollectionBuilder<PropertyGuardDefinitionCollectionBuilder>();
 

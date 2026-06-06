@@ -8,16 +8,19 @@ public class PropertyGuardMap : IPropertyGuardMap
 
     public IReadOnlyDictionary<string, PropertyGuardEntry> Guards => _guards;
 
-    public IPropertyGuardMap Add(string propertyAlias, string? featureKey = null, string? message = null, PropertyGuardSource source = PropertyGuardSource.Code)
+    public IPropertyGuardMap Add(string propertyAlias, PropertyGuardEntry entry)
     {
         if (string.IsNullOrWhiteSpace(propertyAlias)) return this;
 
-        _guards[propertyAlias] = new PropertyGuardEntry(featureKey, message, source);
+        _guards[propertyAlias] = entry;
         return this;
     }
 
+    public IPropertyGuardMap Add(string propertyAlias, string? featureKey = null, string? message = null, PropertyGuardSource source = PropertyGuardSource.Code, PropertyGuardMode mode = PropertyGuardMode.ReadOnly)
+        => Add(propertyAlias, new PropertyGuardEntry(featureKey, message, source, mode));
+
     public IPropertyGuardMap Add(PropertyGuardDto propertyGuard)
-        => Add(propertyGuard.PropertyAlias, propertyGuard.FeatureKey, propertyGuard.Message, source: PropertyGuardSource.Config);
+        => Add(propertyGuard.PropertyAlias, new PropertyGuardEntry(propertyGuard.FeatureKey, propertyGuard.Message, PropertyGuardSource.Config, propertyGuard.Mode));
 
     public IPropertyGuardMap RegisterProperty(string propertyAlias, string? featureKey = null, string? message = null)
         => Add(propertyAlias, featureKey, message);
