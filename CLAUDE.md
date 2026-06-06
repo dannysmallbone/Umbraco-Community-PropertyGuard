@@ -1,6 +1,6 @@
 # Umbraco Community PropertyGuard
 
-Personal open-source Umbraco community package. MIT licence. Published as `Umbraco.Community.PropertyGuard` on NuGet. Personal GitHub under `Smallbone-Studios` — stays here (not moving to `bifroststudiosuk`).
+Personal open-source Umbraco community package. MIT licence. Published as `Umbraco.Community.PropertyGuard` on NuGet. Personal GitHub under `dannysmallbone` — stays here (not moving to `bifroststudiosuk`).
 
 ## Before doing anything
 
@@ -16,7 +16,7 @@ Personal open-source Umbraco community package. MIT licence. Published as `Umbra
 
 - **Package:** `Umbraco.Community.PropertyGuard`
 - **Runtime:** .NET 10 / Umbraco 17+
-- **Source:** `Smallbone-Studios/Umbraco-Community-PropertyGuard` (GitHub, personal — not bifroststudiosuk)
+- **Source:** `dannysmallbone/Umbraco-Community-PropertyGuard` (GitHub, personal — not bifroststudiosuk)
 - **Local dev:** `https://localhost:44303` — SQLite, auto-installs on first run
 - **Login:** `dannysmallbone@gmail.com` / `password321`
 - **Current branch:** `v17/dev`
