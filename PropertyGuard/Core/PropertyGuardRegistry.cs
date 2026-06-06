@@ -42,7 +42,7 @@ public class PropertyGuardRegistry : IPropertyGuardRegistry
         {
             foreach (KeyValuePair<string, PropertyGuardEntry> kvp in map.Guards)
             {
-                existing.Add(kvp.Key, kvp.Value.FeatureKey, kvp.Value.Message);
+                existing.Add(kvp.Key, kvp.Value.FeatureKey, kvp.Value.Message, kvp.Value.Source);
             }
         }
         else

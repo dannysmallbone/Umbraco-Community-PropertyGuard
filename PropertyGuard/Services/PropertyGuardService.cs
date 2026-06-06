@@ -41,13 +41,10 @@ public class PropertyGuardService(
                 PropertyAlias = guard.Key,
                 FeatureKey = guard.Value.FeatureKey,
                 Message = guard.Value.Message,
+                Source = guard.Value.Source,
             })];
 
-            MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(TimeSpan.FromMinutes(5))
-                .SetSlidingExpiration(TimeSpan.FromMinutes(2));
-
-            _cache.Set(cacheKey, dtos, cacheOptions);
+                _cache.Set(cacheKey, dtos, CreateCacheOptions());
 
             return dtos;
 
@@ -60,17 +57,7 @@ public class PropertyGuardService(
     }
 
     public IEnumerable<PropertyGuardDto> GetPropertyGuards(string[] documentTypeAliases)
-    {
-        List<PropertyGuardDto> dtos = [];
-
-        foreach (string? documentTypeAlias in documentTypeAliases.Distinct())
-        {
-            IEnumerable<PropertyGuardDto> propertyGuards = GetPropertyGuards(documentTypeAlias);
-            dtos.AddRange(propertyGuards);
-        }
-
-        return dtos;
-    }
+        => documentTypeAliases.Distinct().SelectMany(GetPropertyGuards);
 
     public IEnumerable<PropertyGuardDto> GetPropertyGuards()
     {
@@ -85,8 +72,8 @@ public class PropertyGuardService(
             (string? documentTypeAlias, string? propertyAlias) = guard.Key;
             PropertyGuardEntry value = guard.Value;
 
-            IContentType? documentType = GetDocumentType(documentTypeAlias);
-            IPropertyType? propertyType = GetPropertyType(documentType, propertyAlias);
+            IContentType? documentType = _contentTypeService.Get(documentTypeAlias);
+            IPropertyType? propertyType = documentType?.PropertyTypes.FirstOrDefault(p => p.Alias.Equals(propertyAlias, StringComparison.OrdinalIgnoreCase));
 
             return new PropertyGuardDto
             {
@@ -98,28 +85,18 @@ public class PropertyGuardService(
                 PropertyTypeUnique = propertyType?.Key.ToString(),
                 Icon = documentType?.Icon,
                 FeatureKey = value.FeatureKey,
-                Message = value.Message
+                Message = value.Message,
+                Source = value.Source,
             };
         })];
 
-        MemoryCacheEntryOptions cacheOptions = new MemoryCacheEntryOptions()
-               .SetAbsoluteExpiration(TimeSpan.FromMinutes(5))
-               .SetSlidingExpiration(TimeSpan.FromMinutes(2));
-
-        _cache.Set(cacheKey, dtos, cacheOptions);
+        _cache.Set(cacheKey, dtos, CreateCacheOptions());
 
         return dtos;
     }
 
-    private IContentType? GetDocumentType(string documentTypeAlias)
-    {
-        IContentType? documentType = _contentTypeService.Get(documentTypeAlias);
-        return documentType;
-    }
-
-    private static IPropertyType? GetPropertyType(IContentType? contentType, string propertyAlias)
-    {
-        IPropertyType? propertyType = contentType?.PropertyTypes.FirstOrDefault(p => p.Alias.Equals(propertyAlias, StringComparison.OrdinalIgnoreCase));
-        return propertyType;
-    }
+    private static MemoryCacheEntryOptions CreateCacheOptions() =>
+        new MemoryCacheEntryOptions()
+            .SetAbsoluteExpiration(TimeSpan.FromMinutes(5))
+            .SetSlidingExpiration(TimeSpan.FromMinutes(2));
 }

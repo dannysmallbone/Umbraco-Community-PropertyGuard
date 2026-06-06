@@ -1,12 +1,12 @@
 import { UmbElementMixin } from '@umbraco-cms/backoffice/element-api';
-import { css, customElement, html, LitElement, nothing, repeat } from '@umbraco-cms/backoffice/external/lit';
+import { css, customElement, html, LitElement, nothing, repeat, state } from '@umbraco-cms/backoffice/external/lit';
 import { PROPERTYGUARD_WORKSPACE_CONTEXT } from '../workspace-contexts/propertyguard-workspace-context';
 import { PropertyGuardDto } from '../api/types.gen';
 import { observeMultiple } from '@umbraco-cms/backoffice/observable-api';
 
 @customElement('propertyguard-workspace-view')
 export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElement) {
-  private _propertyGuards: PropertyGuardDto[] = [];
+  @state() private _propertyGuards: PropertyGuardDto[] = [];
 
   constructor() {
     super();
@@ -28,7 +28,7 @@ export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElemen
     });
   }
 
-  private createName(item: PropertyGuardDto) {
+  #createName(item: PropertyGuardDto) {
     const documentName = `${this.localize.string(item.documentTypeName ?? item.documentTypeAlias)}`;
     const propertyName = item.propertyTypeName
       ? `${this.localize.string(item.propertyTypeName)} (${item.propertyAlias})`
@@ -42,26 +42,23 @@ export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElemen
   }
 
   #renderPropertyGuards() {
-    if (!this._propertyGuards) return;
+    if (!this._propertyGuards.length) return;
 
     return html`
-      <div slot="editor">
-        <uui-ref-list>
-          ${repeat(
-            this._propertyGuards,
-            (propertyGuard) => `${propertyGuard.documentTypeAlias}-${propertyGuard.propertyAlias}`,
-            (propertyGuard) => this.#renderPropertyGuard(propertyGuard),
-          )}
-        </uui-ref-list>
-      </div>
+      <uui-ref-list>
+        ${repeat(
+          this._propertyGuards,
+          (propertyGuard) => `${propertyGuard.documentTypeAlias}-${propertyGuard.propertyAlias}`,
+          (propertyGuard) => this.#renderPropertyGuard(propertyGuard),
+        )}
+      </uui-ref-list>
     `;
   }
 
   #renderPropertyGuard(propertyGuard: PropertyGuardDto) {
-    let icon = propertyGuard.propertyTypeUnique ? propertyGuard.icon : 'alert color-red';
-    let detail = propertyGuard.propertyTypeUnique ? propertyGuard.permissions.join(',') : 'Property not found!';
-
-    let name = this.createName(propertyGuard);
+    const icon = propertyGuard.propertyTypeUnique ? propertyGuard.icon : 'alert color-red';
+    const detail = propertyGuard.propertyTypeUnique ? propertyGuard.permissions.join(', ') : 'Property not found!';
+    const name = this.#createName(propertyGuard);
 
     return html`
       <uui-ref-node-document-type
@@ -71,10 +68,9 @@ export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElemen
         readonly
       >
         ${icon ? html`<umb-icon slot="icon" name=${icon}></umb-icon>` : nothing}
-        <h1 slot="default">Help</h1>
-        <uui-tag slot="tag" color=${propertyGuard.propertyTypeUnique ? 'default' : 'danger'}
-          >${propertyGuard.featureKey}</uui-tag
-        >
+        <uui-tag slot="tag" color=${propertyGuard.propertyTypeUnique ? 'default' : 'danger'}>
+          ${propertyGuard.featureKey}
+        </uui-tag>
       </uui-ref-node-document-type>
     `;
   }

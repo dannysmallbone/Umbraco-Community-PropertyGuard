@@ -1,4 +1,6 @@
-﻿namespace PropertyGuard.Dtos;
+﻿using PropertyGuard.Core;
+
+namespace PropertyGuard.Dtos;
 
 public class PropertyGuardDto
 {
@@ -21,4 +23,6 @@ public class PropertyGuardDto
     public string Message { get; set; } = Constants.GuardMessage;
 
     public List<string> Permissions { get; set; } = ["Read"];
+
+    public PropertyGuardSource Source { get; set; } = PropertyGuardSource.Code;
 }

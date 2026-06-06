@@ -24,7 +24,10 @@ export type PropertyGuardDto = {
     featureKey: string;
     message: string;
     permissions: Array<string>;
+    source: PropertyGuardSource;
 };
+
+export type PropertyGuardSource = 'Code' | 'Config' | 'Ui';
 
 export type GetPropertyGuardsData = {
     body?: never;
