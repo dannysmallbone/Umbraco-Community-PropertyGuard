@@ -1,13 +1,14 @@
 import { css, customElement, html, nothing, repeat, state } from '@umbraco-cms/backoffice/external/lit';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { UmbSectionViewElement } from '@umbraco-cms/backoffice/section';
-import { PROPERTYGUARD_CONTEXT } from '../../global-context/propertyguard-context';
+import { PROPERTYGUARD_CONTEXT, PropertyGuardContext } from '../../global-context/propertyguard-context';
 import { PropertyGuardDto } from '../../api/types.gen';
 import { UMB_MODAL_MANAGER_CONTEXT } from '@umbraco-cms/backoffice/modal';
 import { UMB_DOCUMENT_PROPERTY_VALUE_USER_PERMISSION_FLOW_MODAL } from '@umbraco-cms/backoffice/document';
 import { UmbDocumentTypeDetailRepository } from '@umbraco-cms/backoffice/document-type';
 import { UMB_NOTIFICATION_CONTEXT } from '@umbraco-cms/backoffice/notification';
 import { DEFAULT_FEATURE, DEFAULT_GROUP } from '../../constants';
+import { modeLabel, guardDisplayName, permissionsToMode } from '../../utils';
 
 const SOURCE_COLORS: Record<string, 'default' | 'positive' | 'warning' | 'danger' | 'invalid' | ''> = {
   Code: 'default',
@@ -17,9 +18,9 @@ const SOURCE_COLORS: Record<string, 'default' | 'positive' | 'warning' | 'danger
 
 @customElement('propertyguard-section-view')
 export class PropertyGuardSectionViewElement extends UmbLitElement implements UmbSectionViewElement {
+
   @state() private _propertyGuards: PropertyGuardDto[] = [];
   @state() private _selectedFeatureKey: string = DEFAULT_FEATURE;
-  @state() private _filteredPropertyGuards: PropertyGuardDto[] = [];
   @state() private _selectedFeatureGroup: string = '';
   @state() private _featureKeys: string[] = [];
   @state() private _featureGroups: string[] = [];
@@ -28,25 +29,30 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
   @state() private _addingGroup = false;
   @state() private _pendingGroupName = '';
   @state() private _filterQuery = '';
+  @state() private _isDirty = false;
+
+
+  #propertyGuardContext?: PropertyGuardContext;
+
 
   constructor() {
     super();
 
     this.consumeContext(PROPERTYGUARD_CONTEXT, (propertyGuardContext) => {
       if (!propertyGuardContext) return;
+      this.#propertyGuardContext = propertyGuardContext;
 
       this.observe(
         propertyGuardContext.propertyGuards,
         (propertyGuards) => {
-          const uiGuards = this._propertyGuards.filter((g) => g.source === 'Ui');
-          this._propertyGuards = [...propertyGuards, ...uiGuards];
-          this._featureKeys = this._getFeatureKeys();
+          this._propertyGuards = propertyGuards;
+          this._featureKeys = this.#getFeatureKeys();
 
           if (!this._featureKeys.includes(this._selectedFeatureKey) && this._featureKeys.length > 0) {
             this._selectedFeatureKey = this._featureKeys[0];
           }
 
-          this._featureGroups = this._getGroupsForFeature(this._selectedFeatureKey);
+          this._featureGroups = this.#getGroupsForFeature(this._selectedFeatureKey);
 
           if (!this._featureGroups.includes(this._selectedFeatureGroup)) {
             this._selectedFeatureGroup = this._featureGroups[0] ?? '';
@@ -57,24 +63,17 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
     });
   }
 
-  updated(changedProperties: Map<string, unknown>) {
-    if (
-      changedProperties.has('_selectedFeatureKey') ||
-      changedProperties.has('_selectedFeatureGroup') ||
-      changedProperties.has('_propertyGuards')
-    ) {
-      this._updateFilteredPropertyGuards();
-    }
 
+  override updated(changedProperties: Map<string, unknown>) {
     if (changedProperties.has('_filterQuery')) {
-      const visibleFeatures = this._visibleFeatureKeys;
+      const visibleFeatures = this.#visibleFeatureKeys;
       if (visibleFeatures.length > 0 && !visibleFeatures.includes(this._selectedFeatureKey)) {
         this._selectedFeatureKey = visibleFeatures[0];
-        this._featureGroups = this._getGroupsForFeature(this._selectedFeatureKey);
+        this._featureGroups = this.#getGroupsForFeature(this._selectedFeatureKey);
         this._selectedFeatureGroup = this._featureGroups[0] ?? '';
       }
 
-      const visibleGroups = this._visibleGroups;
+      const visibleGroups = this.#visibleGroups;
       if (visibleGroups.length > 0 && !visibleGroups.includes(this._selectedFeatureGroup)) {
         this._selectedFeatureGroup = visibleGroups[0];
       }
@@ -89,39 +88,20 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
     }
   }
 
-  private _getFeatureKeys() {
-    return [...new Set(this._propertyGuards.map((g) => g.featureKey.split('.')[0]))];
-  }
 
-  private _getGroupsForFeature(featureKey: string): string[] {
-    return [
-      ...new Set(
-        this._propertyGuards
-          .filter((g) => g.featureKey.startsWith(`${featureKey}.`))
-          .map((g) => g.featureKey.split('.')[1] || 'General'),
-      ),
-    ].sort();
-  }
-
-  private _updateFilteredPropertyGuards() {
-    this._filteredPropertyGuards = this._propertyGuards.filter((propertyGuard) => {
-      const featureKeyMatch = propertyGuard.featureKey.startsWith(`${this._selectedFeatureKey}.`);
-      const groupMatch = (propertyGuard.featureKey.split('.')[1] || 'General') === this._selectedFeatureGroup;
+  get #filteredPropertyGuards(): PropertyGuardDto[] {
+    return this._propertyGuards.filter((g) => {
+      const featureKeyMatch = g.featureKey.startsWith(`${this._selectedFeatureKey}.`);
+      const groupMatch = (g.featureKey.split('.')[1] || 'General') === this._selectedFeatureGroup;
       return featureKeyMatch && groupMatch;
     });
   }
 
-  #matchesQuery(guard: PropertyGuardDto): boolean {
-    const query = this._filterQuery.toLowerCase();
-    if (!query) return true;
-    return (
-      this.#createName(guard).toLowerCase().includes(query) ||
-      guard.propertyAlias.toLowerCase().includes(query) ||
-      guard.featureKey.toLowerCase().includes(query)
-    );
+  get #hasUiGuards() {
+    return this._propertyGuards.some((g) => g.source === 'Ui');
   }
 
-  private get _visibleFeatureKeys() {
+  get #visibleFeatureKeys() {
     return this._filterQuery
       ? this._featureKeys.filter((key) =>
           this._propertyGuards.some((g) => g.featureKey.startsWith(`${key}.`) && this.#matchesQuery(g)),
@@ -129,7 +109,7 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
       : this._featureKeys;
   }
 
-  private get _visibleGroups() {
+  get #visibleGroups() {
     return this._filterQuery
       ? this._featureGroups.filter((group) =>
           this._propertyGuards.some(
@@ -142,70 +122,187 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
       : this._featureGroups;
   }
 
-  #createName(item: PropertyGuardDto) {
-    const documentName = `${this.localize.string(item.documentTypeName ?? item.documentTypeAlias)}`;
-    const propertyName = item.propertyTypeName
-      ? `${this.localize.string(item.propertyTypeName)} (${item.propertyAlias})`
-      : `${item.propertyAlias}`;
 
-    return `${documentName}: ${propertyName}`;
+  #getFeatureKeys() {
+    return [...new Set(this._propertyGuards.map((g) => g.featureKey.split('.')[0]))];
   }
+
+  #getGroupsForFeature(featureKey: string): string[] {
+    return [
+      ...new Set(
+        this._propertyGuards
+          .filter((g) => g.featureKey.startsWith(`${featureKey}.`))
+          .map((g) => g.featureKey.split('.')[1] || 'General'),
+      ),
+    ].sort();
+  }
+
+  #matchesQuery(guard: PropertyGuardDto): boolean {
+    const query = this._filterQuery.toLowerCase();
+    if (!query) return true;
+    return (
+      guardDisplayName(guard, (key) => this.localize.string(key)).toLowerCase().includes(query) ||
+      guard.propertyAlias.toLowerCase().includes(query) ||
+      guard.featureKey.toLowerCase().includes(query)
+    );
+  }
+
 
   async #addPropertyGuard() {
     const modalManager = await this.getContext(UMB_MODAL_MANAGER_CONTEXT);
-    if (!modalManager) {
-      throw new Error('Could not open modal, no modal manager found');
-    }
+    if (!modalManager) throw new Error('Could not open modal, no modal manager found');
 
     const modal = modalManager.open(this, UMB_DOCUMENT_PROPERTY_VALUE_USER_PERMISSION_FLOW_MODAL, {
       data: {
-        preset: {
-          verbs: ['Umb.Document.PropertyValue.Read'],
-        },
-        pickablePropertyTypeFilter: (propertyType) =>
-          !this._filteredPropertyGuards.some(
-            (propertyGuard) => propertyGuard.propertyTypeUnique === propertyType.unique,
-          ),
+        preset: { verbs: ['Umb.Document.PropertyValue.Read'] },
+        pickablePropertyTypeFilter: (pt) => !this.#filteredPropertyGuards.some((g) => g.propertyTypeUnique === pt.unique),
       },
     });
 
     try {
       const value = await modal?.onSubmit();
-
-      const documentTypeRepository = new UmbDocumentTypeDetailRepository(this);
-      const { data: documentType } = await documentTypeRepository.requestByUnique(value.documentType.unique);
-
-      if (!documentType) return;
-
-      const propertyType = documentType?.properties.find((p) => p.unique === value.propertyType.unique);
-
-      if (!propertyType) return;
-
-      const propertyGuard: PropertyGuardDto = {
-        documentTypeAlias: documentType.alias,
-        documentTypeName: documentType.name,
-        documentTypeUnique: documentType.unique,
-        propertyAlias: propertyType.alias,
-        propertyTypeName: propertyType.name,
-        propertyTypeUnique: propertyType.unique,
-        icon: documentType.icon,
+      const guard = await this.#resolveGuard(value.documentType.unique, value.propertyType.unique, value.verbs, {
         featureKey: `${this._selectedFeatureKey}.${this._selectedFeatureGroup}`,
-        permissions: value.verbs.map((v) => v.replace('Umb.Document.PropertyValue.', '')),
         message: 'Property is protected by Property Guard',
         source: 'Ui',
-      };
-
-      this._propertyGuards = [...this._propertyGuards, propertyGuard];
+      });
+      if (!guard) return;
+      this._propertyGuards = [...this._propertyGuards, guard];
+      this._isDirty = true;
     } catch {
       // user cancelled
     }
   }
 
-  private get _hasUiGuards() {
-    return this._propertyGuards.some((g) => g.source === 'Ui');
+  async #resolveGuard(
+    documentTypeUnique: string,
+    propertyTypeUnique: string,
+    verbs: string[],
+    base: Partial<PropertyGuardDto>,
+  ): Promise<PropertyGuardDto | null> {
+    const { data: documentType } = await new UmbDocumentTypeDetailRepository(this).requestByUnique(documentTypeUnique);
+    if (!documentType) return null;
+
+    const propertyType = documentType.properties.find((p) => p.unique === propertyTypeUnique);
+    if (!propertyType) return null;
+
+    const permissions = verbs.map((v) => v.replace('Umb.Document.PropertyValue.', '')).filter((p) => p === 'Read');
+
+    return {
+      ...base,
+      documentTypeAlias: documentType.alias,
+      documentTypeName: documentType.name,
+      documentTypeUnique: documentType.unique,
+      propertyAlias: propertyType.alias,
+      propertyTypeName: propertyType.name,
+      propertyTypeUnique: propertyType.unique,
+      icon: documentType.icon,
+      permissions,
+      mode: permissionsToMode(permissions),
+    } as PropertyGuardDto;
   }
 
-  render() {
+  async #editPropertyGuard(guard: PropertyGuardDto) {
+    const modalManager = await this.getContext(UMB_MODAL_MANAGER_CONTEXT);
+    if (!modalManager) throw new Error('Could not open modal, no modal manager found');
+
+    const modal = modalManager.open(this, UMB_DOCUMENT_PROPERTY_VALUE_USER_PERMISSION_FLOW_MODAL, {
+      data: {
+        preset: {
+          documentType: guard.documentTypeUnique ? { unique: guard.documentTypeUnique } : undefined,
+          propertyType: guard.propertyTypeUnique ? { unique: guard.propertyTypeUnique } : undefined,
+          verbs: guard.permissions.map((p) => `Umb.Document.PropertyValue.${p}`),
+        },
+        pickablePropertyTypeFilter: (pt) =>
+          pt.unique === guard.propertyTypeUnique || !this.#filteredPropertyGuards.some((g) => g.propertyTypeUnique === pt.unique),
+      },
+    });
+
+    try {
+      const value = await modal?.onSubmit();
+      const replacement = await this.#resolveGuard(value.documentType.unique, value.propertyType.unique, value.verbs, guard);
+      if (!replacement) return;
+      this._propertyGuards = this._propertyGuards.map((g) =>
+        g.documentTypeAlias === guard.documentTypeAlias && g.propertyAlias === guard.propertyAlias ? replacement : g,
+      );
+      this._isDirty = true;
+    } catch {
+      // user cancelled
+    }
+  }
+
+  #removePropertyGuard(guard: PropertyGuardDto) {
+    this._propertyGuards = this._propertyGuards.filter(
+      (g) => !(g.documentTypeAlias === guard.documentTypeAlias && g.propertyAlias === guard.propertyAlias),
+    );
+    this._isDirty = true;
+  }
+
+  async #applyGuards() {
+    const success = await this.#propertyGuardContext?.applyGuards(this._propertyGuards);
+    if (success) this._isDirty = false;
+  }
+
+  async #copyConfig() {
+    const definitions = this._propertyGuards
+      .filter((g) => g.source === 'Ui')
+      .map((g) => {
+        const entry: Record<string, unknown> = {
+          DocumentTypeAlias: g.documentTypeAlias,
+          PropertyAlias: g.propertyAlias,
+          FeatureKey: g.featureKey,
+          Message: g.message,
+        };
+        if (g.mode !== 'ReadOnly') entry['Mode'] = g.mode;
+        return entry;
+      });
+
+    await navigator.clipboard.writeText(JSON.stringify({ PropertyGuard: { Definitions: definitions } }, null, 2));
+
+    const notificationContext = await this.getContext(UMB_NOTIFICATION_CONTEXT);
+    notificationContext?.peek('positive', { data: { headline: 'Config snippet copied to clipboard', message: '' } });
+  }
+
+  #confirmAddFeature() {
+    const name = this._pendingFeatureName.trim();
+    this._addingFeature = false;
+    this._pendingFeatureName = '';
+    if (!name) return;
+
+    if (this._featureKeys.includes(name)) {
+      this._selectedFeatureKey = name;
+      this._featureGroups = this.#getGroupsForFeature(name);
+      this._selectedFeatureGroup = this._featureGroups[0] ?? '';
+      return;
+    }
+
+    this._featureKeys = [...this._featureKeys, name];
+    this._selectedFeatureKey = name;
+    this._featureGroups = [];
+    this._selectedFeatureGroup = '';
+    this._addingGroup = true;
+  }
+
+  #confirmAddGroup() {
+    const trimmed = this._pendingGroupName.trim();
+    if (!trimmed && this._featureGroups.length > 0) {
+      this._addingGroup = false;
+      this._pendingGroupName = '';
+      return;
+    }
+    const name = trimmed || DEFAULT_GROUP;
+    this._addingGroup = false;
+    this._pendingGroupName = '';
+    if (this._featureGroups.includes(name)) {
+      this._selectedFeatureGroup = name;
+      return;
+    }
+    this._featureGroups = [...this._featureGroups, name];
+    this._selectedFeatureGroup = name;
+  }
+
+
+  override render() {
     return html`
       <umb-workspace-editor>
         <uui-box headline="Property Guards">
@@ -225,100 +322,79 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
             </div>
           </div>
         </uui-box>
+        <div slot="footer-info" class="footer-info">
+          UI guards are session-only and will be lost on restart — for DB persistence or extra functionality, try
+          <a href="https://github.com/dannysmallbone/Umbraco-Community-FeatureGuard" target="_blank" class="featureguard-link">FeatureGuard</a>
+          <uui-badge look="primary">
+            <uui-icon name="icon-diamond"></uui-icon>
+          </uui-badge>
+        </div>
         <div slot="actions">
           <uui-button
             look="secondary"
             color="positive"
             label="Copy config"
-            ?disabled=${!this._hasUiGuards}
+            ?disabled=${!this.#hasUiGuards}
             @click=${this.#copyConfig}
           >
             Copy config
           </uui-button>
-          <uui-button look="primary" color="positive" label="Save" ?disabled=${!this._hasUiGuards}>Save</uui-button>
+          <uui-button look="primary" color="positive" label="Apply" ?disabled=${!this._isDirty} @click=${this.#applyGuards}>
+            Apply
+          </uui-button>
         </div>
       </umb-workspace-editor>
     `;
   }
 
-  #renderPropertyGuards() {
-    const visible = this._filteredPropertyGuards.filter((g) => this.#matchesQuery(g));
-
+  #renderSidebar() {
     return html`
-      <uui-ref-list>
-        ${repeat(
-          visible,
-          (propertyGuard) => `${propertyGuard.documentTypeAlias}-${propertyGuard.propertyAlias}`,
-          (propertyGuard) => this.#renderPropertyGuard(propertyGuard),
+      <div class="sidebar">
+        ${this.#visibleFeatureKeys.map(
+          (featureKey) => html`
+            <uui-menu-item
+              label=${featureKey.replace(/([A-Z])/g, ' $1').trim()}
+              ?active=${this._selectedFeatureKey === featureKey}
+              @click=${() => {
+                this._selectedFeatureKey = featureKey;
+                this._featureGroups = this.#getGroupsForFeature(featureKey);
+                this._selectedFeatureGroup = this._featureGroups[0] || '';
+              }}
+            ></uui-menu-item>
+          `,
         )}
-      </uui-ref-list>
-      ${this.#renderAddButton()}
+        ${this._addingFeature
+          ? html`
+              <uui-input
+                class="feature-input"
+                type="text"
+                placeholder="Feature name"
+                .value=${this._pendingFeatureName}
+                @input=${(e: InputEvent) => (this._pendingFeatureName = (e.target as HTMLInputElement).value)}
+                @keydown=${(e: KeyboardEvent) => {
+                  if (e.key === 'Enter') this.#confirmAddFeature();
+                  if (e.key === 'Escape') {
+                    this._addingFeature = false;
+                    this._pendingFeatureName = '';
+                  }
+                }}
+                @focusout=${() => this.#confirmAddFeature()}
+              ></uui-input>
+            `
+          : html`
+              <uui-button class="btn-add" look="placeholder" label="Add feature" @click=${() => (this._addingFeature = true)}>
+                <uui-icon name="add"></uui-icon>
+              </uui-button>
+            `}
+      </div>
     `;
   }
 
-  #renderAddButton() {
-    if (this._visibleGroups.length === 0) return nothing;
-    return html`
-      <uui-button
-        class="btn-add"
-        look="placeholder"
-        label=${this.localize.term('general_add')}
-        @click=${this.#addPropertyGuard}
-      >
-        <uui-icon name="add"></uui-icon>
-      </uui-button>
-    `;
-  }
-
-  #modeLabel(permissions: string[]): string {
-    return permissions.includes('Read') ? 'Read Only' : 'Hidden';
-  }
-
-  #renderPropertyGuard(propertyGuard: PropertyGuardDto) {
-    const icon = propertyGuard.propertyTypeUnique ? propertyGuard.icon : 'alert color-red';
-    const alias = propertyGuard.propertyTypeUnique ? this.#modeLabel(propertyGuard.permissions) : 'Property not found!';
-    const name = this.#createName(propertyGuard);
-
-    return html`
-      <uui-ref-node-document-type
-        name=${name}
-        alias=${alias}
-        .detail=${propertyGuard.propertyTypeUnique ? propertyGuard.message : ''}
-        readonly
-      >
-        ${icon ? html`<umb-icon slot="icon" name=${icon}></umb-icon>` : nothing}
-        <uui-tag slot="tag" look="primary" color=${SOURCE_COLORS[propertyGuard.source] ?? 'default'}>
-          ${propertyGuard.source.toUpperCase()}
-        </uui-tag>
-        <uui-action-bar slot="actions">
-          <uui-button
-            label="Edit"
-            look="secondary"
-            compact
-            ?disabled=${propertyGuard.source !== 'Ui'}
-            @click=${() => this.#editPropertyGuard(propertyGuard)}
-          >
-            <uui-icon name="icon-edit" style="--uui-icon-color: currentColor;"></uui-icon>
-          </uui-button>
-          <uui-button
-            label="Remove"
-            look="secondary"
-            compact
-            ?disabled=${propertyGuard.source !== 'Ui'}
-            @click=${() => this.#removePropertyGuard(propertyGuard)}
-          >
-            <uui-icon name="icon-trash" style="--uui-icon-color: currentColor;"></uui-icon>
-          </uui-button>
-        </uui-action-bar>
-      </uui-ref-node-document-type>
-    `;
-  }
-
-  #renderTabs(): unknown {
+  #renderTabs() {
     return html`
       <div class="tab-bar">
         <uui-tab-group>
-          ${this._visibleGroups.map(
+          ${this.#visibleGroups.map(
             (group) => html`
               <uui-tab
                 label=${group}
@@ -327,7 +403,7 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
               ></uui-tab>
             `,
           )}
-          ${this._visibleFeatureKeys.length > 0
+          ${this.#visibleFeatureKeys.length > 0
             ? this._addingGroup
               ? html`
                   <uui-tab class="tab-input" active>
@@ -359,146 +435,69 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
     `;
   }
 
-  #confirmAddGroup() {
-    const trimmed = this._pendingGroupName.trim();
-    if (!trimmed && this._featureGroups.length > 0) {
-      this._addingGroup = false;
-      this._pendingGroupName = '';
-      return;
-    }
-    const name = trimmed || DEFAULT_GROUP;
-    this._addingGroup = false;
-    this._pendingGroupName = '';
-    if (this._featureGroups.includes(name)) {
-      this._selectedFeatureGroup = name;
-      return;
-    }
-    this._featureGroups = [...this._featureGroups, name];
-    this._selectedFeatureGroup = name;
-  }
-
-  #renderSidebar() {
+  #renderPropertyGuards() {
+    const visible = this.#filteredPropertyGuards.filter((g) => this.#matchesQuery(g));
     return html`
-      <div class="sidebar">
-        ${this._visibleFeatureKeys.map(
-          (featureKey) => html`
-            <uui-menu-item
-              label=${featureKey.replace(/([A-Z])/g, ' $1').trim()}
-              ?active=${this._selectedFeatureKey === featureKey}
-              @click=${() => {
-                this._selectedFeatureKey = featureKey;
-                this._featureGroups = this._getGroupsForFeature(featureKey);
-                this._selectedFeatureGroup = this._featureGroups[0] || '';
-              }}
-            >
-            </uui-menu-item>
-          `,
+      <uui-ref-list>
+        ${repeat(
+          visible,
+          (g) => `${g.documentTypeAlias}-${g.propertyAlias}`,
+          (g) => this.#renderPropertyGuard(g),
         )}
-        ${this._addingFeature
-          ? html`
-              <uui-input
-                class="feature-input"
-                type="text"
-                placeholder="Feature name"
-                .value=${this._pendingFeatureName}
-                @input=${(e: InputEvent) => (this._pendingFeatureName = (e.target as HTMLInputElement).value)}
-                @keydown=${(e: KeyboardEvent) => {
-                  if (e.key === 'Enter') this.#confirmAddFeature();
-                  if (e.key === 'Escape') {
-                    this._addingFeature = false;
-                    this._pendingFeatureName = '';
-                  }
-                }}
-                @focusout=${() => this.#confirmAddFeature()}
-              ></uui-input>
-            `
-          : html`
-              <uui-button
-                class="btn-add"
-                look="placeholder"
-                label="Add feature"
-                @click=${() => (this._addingFeature = true)}
-              >
-                <uui-icon name="add"></uui-icon>
-              </uui-button>
-            `}
-      </div>
+      </uui-ref-list>
+      ${this.#renderAddButton()}
     `;
   }
 
-  async #editPropertyGuard(guard: PropertyGuardDto) {
-    const modalManager = await this.getContext(UMB_MODAL_MANAGER_CONTEXT);
-    if (!modalManager) throw new Error('Could not open modal, no modal manager found');
+  #renderPropertyGuard(propertyGuard: PropertyGuardDto) {
+    const icon = propertyGuard.propertyTypeUnique ? propertyGuard.icon : 'alert color-red';
+    const alias = propertyGuard.propertyTypeUnique ? modeLabel(propertyGuard.mode) : 'Property not found!';
+    const name = guardDisplayName(propertyGuard, (key) => this.localize.string(key));
 
-    const modal = modalManager.open(this, UMB_DOCUMENT_PROPERTY_VALUE_USER_PERMISSION_FLOW_MODAL, {
-      data: {
-        preset: {
-          documentType: guard.documentTypeUnique ? { unique: guard.documentTypeUnique } : undefined,
-          propertyType: guard.propertyTypeUnique ? { unique: guard.propertyTypeUnique } : undefined,
-          verbs: guard.permissions.map((p) => `Umb.Document.PropertyValue.${p}`),
-        },
-        pickablePropertyTypeFilter: (propertyType) =>
-          propertyType.unique === guard.propertyTypeUnique ||
-          !this._filteredPropertyGuards.some((g) => g.propertyTypeUnique === propertyType.unique),
-      },
-    });
-
-    try {
-      const value = await modal?.onSubmit();
-      this._propertyGuards = this._propertyGuards.map((g) =>
-        g === guard ? { ...g, permissions: value.verbs.map((v) => v.replace('Umb.Document.PropertyValue.', '')) } : g,
-      );
-    } catch {
-      // user cancelled
-    }
+    return html`
+      <uui-ref-node-document-type
+        .name=${name}
+        .alias=${alias}
+        .detail=${propertyGuard.propertyTypeUnique ? propertyGuard.message : ''}
+        readonly
+      >
+        ${icon ? html`<umb-icon slot="icon" name=${icon}></umb-icon>` : nothing}
+        <uui-tag slot="tag" look="primary" color=${SOURCE_COLORS[propertyGuard.source] ?? 'default'}>
+          ${propertyGuard.source.toUpperCase()}
+        </uui-tag>
+        <uui-action-bar slot="actions">
+          <uui-button
+            label="Edit"
+            look="secondary"
+            compact
+            ?disabled=${propertyGuard.source !== 'Ui'}
+            @click=${() => this.#editPropertyGuard(propertyGuard)}
+          >
+            <uui-icon name="icon-edit" style="--uui-icon-color: currentColor;"></uui-icon>
+          </uui-button>
+          <uui-button
+            label="Remove"
+            look="secondary"
+            compact
+            ?disabled=${propertyGuard.source !== 'Ui'}
+            @click=${() => this.#removePropertyGuard(propertyGuard)}
+          >
+            <uui-icon name="icon-trash" style="--uui-icon-color: currentColor;"></uui-icon>
+          </uui-button>
+        </uui-action-bar>
+      </uui-ref-node-document-type>
+    `;
   }
 
-  #removePropertyGuard(guard: PropertyGuardDto) {
-    this._propertyGuards = this._propertyGuards.filter((g) => g !== guard);
+  #renderAddButton() {
+    if (this.#visibleGroups.length === 0) return nothing;
+    return html`
+      <uui-button class="btn-add" look="placeholder" label=${this.localize.term('general_add')} @click=${this.#addPropertyGuard}>
+        <uui-icon name="add"></uui-icon>
+      </uui-button>
+    `;
   }
 
-  async #copyConfig() {
-    const uiGuards = this._propertyGuards.filter((g) => g.source === 'Ui');
-    const definitions = uiGuards.map((g) => {
-      const mode = g.permissions.includes('Read') ? 'ReadOnly' : 'Hidden';
-      const entry: Record<string, unknown> = {
-        DocumentTypeAlias: g.documentTypeAlias,
-        PropertyAlias: g.propertyAlias,
-        FeatureKey: g.featureKey,
-        Message: g.message,
-      };
-      if (mode !== 'ReadOnly') {
-        entry['Mode'] = mode;
-      }
-      return entry;
-    });
-
-    const snippet = JSON.stringify({ PropertyGuard: { Definitions: definitions } }, null, 2);
-    await navigator.clipboard.writeText(snippet);
-
-    const notificationContext = await this.getContext(UMB_NOTIFICATION_CONTEXT);
-    notificationContext?.peek('positive', { data: { headline: 'Config snippet copied to clipboard', message: '' } });
-  }
-
-  #confirmAddFeature() {
-    const name = this._pendingFeatureName.trim();
-    this._addingFeature = false;
-    this._pendingFeatureName = '';
-    if (!name) return;
-
-    if (this._featureKeys.includes(name)) {
-      this._selectedFeatureKey = name;
-      this._featureGroups = this._getGroupsForFeature(name);
-      this._selectedFeatureGroup = this._featureGroups[0] ?? '';
-      return;
-    }
-
-    this._featureKeys = [...this._featureKeys, name];
-    this._selectedFeatureKey = name;
-    this._featureGroups = [];
-    this._selectedFeatureGroup = '';
-    this._addingGroup = true;
-  }
 
   static override styles = [
     css`
@@ -516,6 +515,21 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
       uui-box {
         margin: var(--uui-size-layout-2);
         --uui-box-default-padding: 0;
+      }
+
+      .footer-info {
+        padding: 5px 20px 5px 10px;
+        font-size: var(--uui-type-small-size, 12px);
+        position: relative;
+      }
+
+      .footer-info uui-badge {
+        margin-top: var(--uui-size-3);
+      }
+
+      .featureguard-link {
+        text-decoration: none;
+        color: var(--uui-color-interactive);
       }
 
       .container {

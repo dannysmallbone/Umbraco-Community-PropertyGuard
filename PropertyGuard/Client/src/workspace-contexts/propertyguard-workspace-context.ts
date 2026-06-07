@@ -57,7 +57,7 @@ export class PropertyGuardWorkspaceContext extends UmbContextBase {
     for (const guard of guards) {
       if (!guard.propertyTypeUnique) continue;
 
-      const permissions = guard.permissions ?? ['Read'];
+      const permissions = guard.permissions ?? [];
 
       if (!permissions.includes('Read')) {
         const viewRule: UmbPropertyGuardRule = {

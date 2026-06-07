@@ -56,8 +56,8 @@ export class PropertyGuardContext extends UmbContextBase {
         const err = error as ProblemDetails;
         this.#notificationContext?.peek('danger', {
           data: {
-            headline: err.title!,
-            message: err.detail!,
+            headline: err.title ?? 'Error',
+            message: err.detail ?? 'Failed to load property guards',
           },
         });
 
@@ -72,6 +72,32 @@ export class PropertyGuardContext extends UmbContextBase {
       const message = 'Failed to load property guards!';
       console.error(`PropertyGuardContext: ${message}`, error);
       this.#notificationContext?.peek('danger', { data: { headline: 'Error', message: message } });
+    }
+  }
+
+  public async applyGuards(guards: PropertyGuardDto[]): Promise<boolean> {
+    try {
+      const { data, error } = await PropertyGuardService.applyGuards({ body: guards });
+
+      if (error) {
+        const err = error as ProblemDetails;
+        this.#notificationContext?.peek('danger', {
+          data: { headline: err.title ?? 'Error', message: err.detail ?? 'Failed to apply guards' },
+        });
+        return false;
+      }
+
+      if (data) {
+        this.#propertyGuards.setValue(data);
+        this.#notificationContext?.peek('positive', { data: { headline: 'Guards applied', message: '' } });
+        return true;
+      }
+
+      return false;
+    } catch (err) {
+      console.error('PropertyGuardContext: Failed to apply guards', err);
+      this.#notificationContext?.peek('danger', { data: { headline: 'Error', message: 'Failed to apply property guards' } });
+      return false;
     }
   }
 

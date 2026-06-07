@@ -25,9 +25,41 @@ export type PropertyGuardDto = {
     message: string;
     permissions: Array<string>;
     source: PropertyGuardSource;
+    mode: PropertyGuardMode;
 };
 
+export type PropertyGuardMode = 'ReadOnly' | 'Hidden';
+
 export type PropertyGuardSource = 'Code' | 'Config' | 'Ui';
+
+export type ApplyGuardsData = {
+    body?: Array<PropertyGuardDto>;
+    path?: never;
+    query?: never;
+    url: '/umbraco/propertyguard/api/v1/ApplyGuards';
+};
+
+export type ApplyGuardsErrors = {
+    /**
+     * Bad Request
+     */
+    400: ProblemDetails;
+    /**
+     * The resource is protected and requires an authentication token
+     */
+    401: unknown;
+};
+
+export type ApplyGuardsError = ApplyGuardsErrors[keyof ApplyGuardsErrors];
+
+export type ApplyGuardsResponses = {
+    /**
+     * OK
+     */
+    200: Array<PropertyGuardDto>;
+};
+
+export type ApplyGuardsResponse = ApplyGuardsResponses[keyof ApplyGuardsResponses];
 
 export type GetPropertyGuardsData = {
     body?: never;

@@ -3,6 +3,7 @@ import { css, customElement, html, LitElement, nothing, repeat, state } from '@u
 import { PROPERTYGUARD_WORKSPACE_CONTEXT } from '../workspace-contexts/propertyguard-workspace-context';
 import { PropertyGuardDto } from '../api/types.gen';
 import { observeMultiple } from '@umbraco-cms/backoffice/observable-api';
+import { modeLabel, guardDisplayName } from '../utils';
 
 @customElement('propertyguard-workspace-view')
 export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElement) {
@@ -27,15 +28,6 @@ export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElemen
     });
   }
 
-  #createName(item: PropertyGuardDto) {
-    const documentName = `${this.localize.string(item.documentTypeName ?? item.documentTypeAlias)}`;
-    const propertyName = item.propertyTypeName
-      ? `${this.localize.string(item.propertyTypeName)} (${item.propertyAlias})`
-      : `${item.propertyAlias}`;
-
-    return `${documentName}: ${propertyName}`;
-  }
-
   render() {
     return html` <uui-box><div class="property-guards">${this.#renderPropertyGuards()}</div></uui-box> `;
   }
@@ -54,19 +46,15 @@ export class PropertyGuardWorkspaceViewElement extends UmbElementMixin(LitElemen
     `;
   }
 
-  #modeLabel(permissions: string[]): string {
-    return permissions.includes('Read') ? 'Read Only' : 'Hidden';
-  }
-
   #renderPropertyGuard(propertyGuard: PropertyGuardDto) {
     const icon = propertyGuard.propertyTypeUnique ? propertyGuard.icon : 'alert color-red';
-    const alias = propertyGuard.propertyTypeUnique ? this.#modeLabel(propertyGuard.permissions) : 'Property not found!';
-    const name = this.#createName(propertyGuard);
+    const alias = propertyGuard.propertyTypeUnique ? modeLabel(propertyGuard.mode) : 'Property not found!';
+    const name = guardDisplayName(propertyGuard, (key) => this.localize.string(key));
 
     return html`
       <uui-ref-node-document-type
-        name=${name}
-        alias=${alias}
+        .name=${name}
+        .alias=${alias}
         .detail=${propertyGuard.propertyTypeUnique ? propertyGuard.message : ''}
         readonly
       >

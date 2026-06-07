@@ -36,8 +36,8 @@ The Guards section is already hidden from users whose user group does not includ
 |---|---|---|
 | 1 | Backend enforcement (ContentSavingNotification handler) | ✅ Done |
 | 2 | UI — layout, inline add flow, remove, Save (local state only) | ✅ Done |
-| 3 | Backend — RemoveGuard + ApplyGuards API endpoint (in-memory only, no persistence) | Pending |
-| 4 | Wire up — connect UI to Phase 3 API endpoints | Pending |
+| 3 | Backend — RemoveGuard + ApplyGuards API endpoint (in-memory only, no persistence) | ✅ Done |
+| 4 | Wire up — connect UI to Phase 3 API endpoints | ✅ Done |
 | 5 | Tests & CI/CD | Pending |
 | 6 | README | Pending |
 

@@ -1,7 +1,11 @@
-import { PropertyGuardDto } from './api/types.gen';
+import { PropertyGuardDto, PropertyGuardMode } from './api/types.gen';
 
-export function modeLabel(permissions: string[]): string {
-  return permissions.includes('Read') ? 'Read Only' : 'Hidden';
+export function permissionsToMode(permissions: string[]): PropertyGuardMode {
+  return permissions.includes('Read') ? 'ReadOnly' : 'Hidden';
+}
+
+export function modeLabel(mode: PropertyGuardMode): string {
+  return mode === 'ReadOnly' ? 'Read Only' : 'Hidden';
 }
 
 export function guardDisplayName(item: PropertyGuardDto, localize: (key: string) => string): string {

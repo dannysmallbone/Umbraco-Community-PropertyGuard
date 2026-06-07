@@ -1,5 +1,8 @@
+using System.Text.Json.Serialization;
+
 namespace PropertyGuard.Core;
 
+[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum PropertyGuardMode
 {
     ReadOnly,
