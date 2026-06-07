@@ -36,7 +36,7 @@ The Guards section is already hidden from users whose user group does not includ
 |---|---|---|
 | 1 | Backend enforcement (ContentSavingNotification handler) | ✅ Done |
 | 2 | UI — layout, inline add flow, remove, Save (local state only) | ✅ Done |
-| 3 | Backend — RemoveGuard + JSON persistence + management API endpoints | Pending |
+| 3 | Backend — RemoveGuard + ApplyGuards API endpoint (in-memory only, no persistence) | Pending |
 | 4 | Wire up — connect UI to Phase 3 API endpoints | Pending |
 | 5 | Tests & CI/CD | Pending |
 | 6 | README | Pending |
@@ -152,7 +152,12 @@ No intermediate dialog for naming. Each step uses an inline text input directly 
 
 ---
 
-## Phase 3 — Backend: Guard removal + JSON persistence
+## Phase 3 — Backend: Guard management API
+
+> **Design note:** UI-added guards are intentionally in-memory only. There is no persistence layer.
+> Guards added via the UI survive for the current session; to persist them, use the **Copy Config**
+> button to export to code or `appsettings.json`. If you need persisted, toggleable feature guards,
+> use FeatureGuard. PropertyGuard deliberately stays lightweight.
 
 ### 3a — Add `Remove` to `IPropertyGuardRegistry`
 
@@ -162,52 +167,15 @@ No intermediate dialog for naming. Each step uses an inline text input directly 
 **Modify: `PropertyGuard/Core/PropertyGuardRegistry.cs`**
 - Implement `RemoveGuard` — removes the property alias from the document type's map; if the map becomes empty, remove the document type entry entirely
 
-### 3b — JSON persistence layer
-
-Stores UI-added guards to `App_Data/PropertyGuard/guards.json`. Code/appsettings guards are not written here.
-
-**New: `PropertyGuard/Persistence/IPropertyGuardStore.cs`**
-```
-IReadOnlyList<PropertyGuardDto> Load();
-void Save(IEnumerable<PropertyGuardDto> guards);
-```
-
-**New: `PropertyGuard/Persistence/JsonPropertyGuardStore.cs`**
-- Resolves path via `IWebHostEnvironment.ContentRootPath` + `"App_Data/PropertyGuard/guards.json"`
-- `Load()` — deserialises from file; returns empty list if file does not exist
-- `Save(guards)` — serialises to file using `System.Text.Json`; creates directories if needed
-
-**Modify: `PropertyGuard/DependencyInjection/UmbracoBuilderExtensions.cs`**
-- Register `IPropertyGuardStore` → `JsonPropertyGuardStore` (singleton)
-
-**Modify: `PropertyGuard/NotificationHandlers/PropertyGuardStartupNotificationHandler.cs`**
-- After loading code + appsettings guards, also load from `IPropertyGuardStore` and register each
-- Order: code → appsettings → JSON store (additive — JSON store cannot override others)
-- Tag each guard with its source: `"code"`, `"config"`, or `"ui"`
-
-### 3c — Management API endpoints
+### 3b — Management API endpoint
 
 **Modify: `PropertyGuard/Controllers/PropertyGuardApiController.cs`**
 
-Add three new endpoints alongside the existing GET endpoints:
+Add one new endpoint alongside the existing GET endpoints:
 
-- `POST /AddGuard` — body: `PropertyGuardDto` → validates `FeatureKey` is non-empty → calls `registry.RegisterGuard(dto)` → returns updated `List<PropertyGuardDto>`
-- `DELETE /RemoveGuard` — query params: `documentTypeAlias`, `propertyAlias` → calls `registry.RemoveGuard(...)` → returns updated `List<PropertyGuardDto>`
-- `POST /SaveGuards` — no body → reads UI-managed guards, calls `store.Save(...)` → returns `200 OK`
+- `POST /ApplyGuards` — body: `List<PropertyGuardDto>` → filters to `source == Ui` → diffs against current UI guards in registry (adds new, removes stale) → invalidates service cache → returns updated `List<PropertyGuardDto>`
 
-> `SaveGuards` only writes guards where `Source == "ui"`.
-
-**Regenerate TypeScript client after adding these endpoints.**
-
-### 3d — Fix API authorization
-
-Currently `PropertyGuardApiControllerBase` uses `AuthorizationPolicies.SectionAccessContent` — this allows any user with Content section access to call the API regardless of Guards section access.
-
-**Modify: `PropertyGuard/DependencyInjection/UmbracoBuilderExtensions.cs`**
-- Register a custom authorization policy `"PropertyGuardSectionAccess"` that checks the user has the `PropertyGuard.Section` section assigned
-
-**Modify: `PropertyGuard/Controllers/PropertyGuardApiControllerBase.cs`**
-- Change `[Authorize(Policy = AuthorizationPolicies.SectionAccessContent)]` to `[Authorize(Policy = "PropertyGuardSectionAccess")]`
+**Regenerate TypeScript client after adding this endpoint.**
 
 ---
 
@@ -217,11 +185,11 @@ After Phase 3 is complete, swap local state mutations for real API calls.
 
 **File: `PropertyGuard/Client/src/sections/views/propertyguard-section-view.element.ts`**
 
-- Regenerate TypeScript API client (`npm run generate-client <swagger-url>`) after Phase 3 adds the new endpoints
-- `#addPropertyGuard()` confirm → call `POST /AddGuard`; update local state from response
-- Remove `[x]` click → call `DELETE /RemoveGuard`; remove from local state on success
-- Save button → call `POST /SaveGuards`; show success/failure notification via `UMB_NOTIFICATION_CONTEXT`
-- Load initial guards from `GET /PropertyGuards` on context initialisation
+- Regenerate TypeScript API client (`npm run generate-client <swagger-url>`) after Phase 3 adds the new endpoint
+- Rename Save button → **Apply**
+- Add `uui-notice` beneath the page header explaining session-only guards and pointing to FeatureGuard for persistence
+- Apply button → call `POST /ApplyGuards` with full `_propertyGuards` list; update local state from response; show success/failure notification via `UMB_NOTIFICATION_CONTEXT`
+- Load initial guards from `GET /GetPropertyGuards` on context initialisation
 
 ---
 
@@ -229,9 +197,9 @@ After Phase 3 is complete, swap local state mutations for real API calls.
 
 ### Unit tests (new project `PropertyGuard.Tests`)
 
-- `PropertyGuardRegistry` — `RegisterGuard` merge; `RemoveGuard` removes correctly; case-insensitive lookups
+- `PropertyGuardRegistry` — `RegisterGuard` merge; `RemoveGuard` removes correctly; empty map cleaned up; case-insensitive lookups
+- `PropertyGuardService.ApplyGuards` — adds new UI guards; removes stale UI guards; code/config guards untouched; cache invalidated
 - `PropertyGuardSavingNotificationHandler` — dirty guarded property reverts; non-guarded property untouched; no-guard doc type skipped
-- `JsonPropertyGuardStore` — round-trip save/load; missing file returns empty list; directories created on save
 
 ### CI/CD (`.github/workflows/`)
 
@@ -268,9 +236,6 @@ After Phase 3 is complete, swap local state mutations for real API calls.
 | [PropertyGuard/Client/src/sections/views/propertyguard-section-view.element.ts](PropertyGuard/Client/src/sections/views/propertyguard-section-view.element.ts) | Phase 2 — full UI rewrite (local state) |
 | [PropertyGuard/Core/IPropertyGuardRegistry.cs](PropertyGuard/Core/IPropertyGuardRegistry.cs) | Phase 3 — add `RemoveGuard` method |
 | [PropertyGuard/Core/PropertyGuardRegistry.cs](PropertyGuard/Core/PropertyGuardRegistry.cs) | Phase 3 — implement `RemoveGuard` |
-| [PropertyGuard/NotificationHandlers/PropertyGuardStartupNotificationHandler.cs](PropertyGuard/NotificationHandlers/PropertyGuardStartupNotificationHandler.cs) | Phase 3 — load from JSON store; tag guards with source |
-| [PropertyGuard/Controllers/PropertyGuardApiController.cs](PropertyGuard/Controllers/PropertyGuardApiController.cs) | Phase 3 — add `AddGuard`, `RemoveGuard`, `SaveGuards` endpoints |
-| [PropertyGuard/Controllers/PropertyGuardApiControllerBase.cs](PropertyGuard/Controllers/PropertyGuardApiControllerBase.cs) | Phase 3 — fix authorization policy |
-| [PropertyGuard/DependencyInjection/UmbracoBuilderExtensions.cs](PropertyGuard/DependencyInjection/UmbracoBuilderExtensions.cs) | Phase 3 — register store + auth policy |
-| `PropertyGuard/Persistence/IPropertyGuardStore.cs` | Phase 3 — persistence interface (new) |
-| `PropertyGuard/Persistence/JsonPropertyGuardStore.cs` | Phase 3 — JSON file implementation (new) |
+| [PropertyGuard/Controllers/PropertyGuardApiController.cs](PropertyGuard/Controllers/PropertyGuardApiController.cs) | Phase 3 — add `ApplyGuards` endpoint |
+| [PropertyGuard/Services/IPropertyGuardService.cs](PropertyGuard/Services/IPropertyGuardService.cs) | Phase 3 — `ApplyGuards` interface method |
+| [PropertyGuard/Services/PropertyGuardService.cs](PropertyGuard/Services/PropertyGuardService.cs) | Phase 3 — `ApplyGuards` implementation with cache invalidation |

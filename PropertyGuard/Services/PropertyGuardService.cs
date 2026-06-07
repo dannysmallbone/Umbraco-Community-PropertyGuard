@@ -107,6 +107,39 @@ public class PropertyGuardService(
         return dtos;
     }
 
+    public IEnumerable<PropertyGuardDto> ApplyGuards(IEnumerable<PropertyGuardDto> guards)
+    {
+        List<PropertyGuardDto> submitted = [.. guards.Where(g => g.Source == PropertyGuardSource.Ui)];
+
+        List<(string DocumentTypeAlias, string PropertyAlias)> current = [.. _propertyGuardRegistry
+            .GetAllPropertyGuards()
+            .Where(g => g.Value.Source == PropertyGuardSource.Ui)
+            .Select(g => g.Key)];
+
+        foreach ((string documentTypeAlias, string propertyAlias) in current)
+        {
+            _propertyGuardRegistry.RemoveGuard(documentTypeAlias, propertyAlias);
+        }
+
+        foreach (PropertyGuardDto guard in submitted)
+        {
+            _propertyGuardRegistry.RegisterGuard(guard);
+        }
+
+        IEnumerable<string> affected = submitted.Select(g => g.DocumentTypeAlias)
+            .Concat(current.Select(k => k.DocumentTypeAlias))
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+
+        foreach (string alias in affected)
+        {
+            _cache.Remove($"{CachePrefix}{alias}");
+        }
+
+        _cache.Remove($"{CachePrefix}All");
+
+        return GetPropertyGuards();
+    }
+
     private static IPropertyType? FindPropertyType(IContentTypeComposition? contentType, string propertyAlias)
     {
         if (contentType is null) return null;

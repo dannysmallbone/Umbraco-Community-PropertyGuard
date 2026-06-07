@@ -65,4 +65,13 @@ public class PropertyGuardRegistry : IPropertyGuardRegistry
 
         return this;
     }
+
+    public void RemoveGuard(string documentTypeAlias, string propertyAlias)
+    {
+        if (!_maps.TryGetValue(documentTypeAlias, out IPropertyGuardMap? map)) return;
+
+        map.Remove(propertyAlias);
+
+        if (map.Guards.Count == 0) _maps.Remove(documentTypeAlias);
+    }
 }

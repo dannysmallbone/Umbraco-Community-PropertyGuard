@@ -9,4 +9,5 @@ public interface IPropertyGuardRegistry
     IReadOnlyDictionary<string, PropertyGuardEntry>? GetPropertyGuards(string documentTypeAlias);
     PropertyGuardRegistry RegisterGuard(string documentTypeAlias, IPropertyGuardMap map);
     PropertyGuardRegistry RegisterGuard(PropertyGuardDto propertyGuard);
+    void RemoveGuard(string documentTypeAlias, string propertyAlias);
 }

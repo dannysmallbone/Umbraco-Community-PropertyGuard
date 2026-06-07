@@ -34,6 +34,7 @@ public class PropertyGuardStartupNotificationHandler(
         {
             foreach (PropertyGuardDto propertyGuard in group)
             {
+                propertyGuard.Source = PropertyGuardSource.Config;
                 _propertyGuardRegistry.RegisterGuard(propertyGuard);
             }
         }

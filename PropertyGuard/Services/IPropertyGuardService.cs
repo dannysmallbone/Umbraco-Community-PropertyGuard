@@ -7,4 +7,5 @@ public interface IPropertyGuardService
     IEnumerable<PropertyGuardDto> GetPropertyGuards(string documentTypeAlias);
     IEnumerable<PropertyGuardDto> GetPropertyGuards(string[] documentTypeAliases);
     IEnumerable<PropertyGuardDto> GetPropertyGuards();
+    IEnumerable<PropertyGuardDto> ApplyGuards(IEnumerable<PropertyGuardDto> guards);
 }

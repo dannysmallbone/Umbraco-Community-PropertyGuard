@@ -85,4 +85,25 @@ public class PropertyGuardApiController(
                 .Build());
         }
     }
+
+    [HttpPost("ApplyGuards")]
+    [ProducesResponseType<List<PropertyGuardDto>>(StatusCodes.Status200OK)]
+    [ProducesResponseType<ProblemDetails>(StatusCodes.Status400BadRequest)]
+    public IActionResult ApplyGuards([FromBody] List<PropertyGuardDto> guards)
+    {
+        try
+        {
+            IEnumerable<PropertyGuardDto> result = _propertyGuardService.ApplyGuards(guards);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to apply property guards");
+
+            return BadRequest(new ProblemDetailsBuilder()
+                .WithTitle("Error")
+                .WithDetail("Failed to apply property guards")
+                .Build());
+        }
+    }
 }
