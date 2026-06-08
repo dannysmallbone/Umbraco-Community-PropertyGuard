@@ -1,8 +1,9 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using PropertyGuard.Core;
+using PropertyGuard.Dtos;
 using PropertyGuard.Services;
 using PropertyGuard.Tests.Helpers;
 using Umbraco.Cms.Core.Services;
@@ -22,11 +23,11 @@ public class PropertyGuardServiceTests
     [Fact]
     public void GetPropertyGuards_CacheMiss_ReturnsGuardsFromRegistry()
     {
-        var registry = new PropertyGuardRegistry();
+        PropertyGuardRegistry registry = new();
         registry.RegisterGuard(Fakes.UiGuard("content", "title"));
         PropertyGuardService service = BuildService(registry);
 
-        IEnumerable<PropertyGuard.Dtos.PropertyGuardDto> result = service.GetPropertyGuards("content");
+        IEnumerable<PropertyGuardDto> result = service.GetPropertyGuards("content");
 
         result.Should().ContainSingle(g => g.PropertyAlias == "title");
     }
@@ -34,13 +35,13 @@ public class PropertyGuardServiceTests
     [Fact]
     public void GetPropertyGuards_CacheHit_ReturnsCachedResult()
     {
-        var registry = new PropertyGuardRegistry();
+        PropertyGuardRegistry registry = new();
         registry.RegisterGuard(Fakes.UiGuard("content", "title"));
         PropertyGuardService service = BuildService(registry);
         service.GetPropertyGuards("content");
 
         registry.RemoveGuard("content", "title");
-        IEnumerable<PropertyGuard.Dtos.PropertyGuardDto> result = service.GetPropertyGuards("content");
+        IEnumerable<PropertyGuardDto> result = service.GetPropertyGuards("content");
 
         result.Should().ContainSingle(g => g.PropertyAlias == "title");
     }
@@ -48,7 +49,7 @@ public class PropertyGuardServiceTests
     [Fact]
     public void ApplyGuards_NewUiGuards_RegistersInRegistry()
     {
-        var registry = new PropertyGuardRegistry();
+        PropertyGuardRegistry registry = new();
         PropertyGuardService service = BuildService(registry);
 
         service.ApplyGuards([Fakes.UiGuard("content", "title")]);
@@ -59,7 +60,7 @@ public class PropertyGuardServiceTests
     [Fact]
     public void ApplyGuards_StaleUiGuards_RemovedFromRegistry()
     {
-        var registry = new PropertyGuardRegistry();
+        PropertyGuardRegistry registry = new();
         registry.RegisterGuard(Fakes.UiGuard("content", "stale"));
         PropertyGuardService service = BuildService(registry);
 
@@ -71,7 +72,7 @@ public class PropertyGuardServiceTests
     [Fact]
     public void ApplyGuards_CodeGuards_ArePreserved()
     {
-        var registry = new PropertyGuardRegistry();
+        PropertyGuardRegistry registry = new();
         registry.RegisterGuard(Fakes.CodeGuard("content", "title"));
         PropertyGuardService service = BuildService(registry);
 
@@ -83,7 +84,7 @@ public class PropertyGuardServiceTests
     [Fact]
     public void ApplyGuards_InvalidatesAffectedDocTypeCache()
     {
-        var registry = new PropertyGuardRegistry();
+        PropertyGuardRegistry registry = new();
         registry.RegisterGuard(Fakes.UiGuard("content", "title"));
         PropertyGuardService service = BuildService(registry);
         service.GetPropertyGuards("content");

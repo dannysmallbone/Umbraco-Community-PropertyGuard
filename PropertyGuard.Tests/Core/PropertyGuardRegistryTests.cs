@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using PropertyGuard.Core;
 using PropertyGuard.Tests.Helpers;
 
@@ -9,7 +9,7 @@ public class PropertyGuardRegistryTests
     [Fact]
     public void RegisterGuard_NewDocType_CreatesEntry()
     {
-        var registry = new PropertyGuardRegistry();
+        PropertyGuardRegistry registry = new();
 
         registry.RegisterGuard(Fakes.UiGuard("content", "title"));
 
@@ -19,7 +19,7 @@ public class PropertyGuardRegistryTests
     [Fact]
     public void RegisterGuard_ExistingDocType_MergesProperty()
     {
-        var registry = new PropertyGuardRegistry();
+        PropertyGuardRegistry registry = new();
         registry.RegisterGuard(Fakes.UiGuard("content", "title"));
 
         registry.RegisterGuard(Fakes.UiGuard("content", "summary"));
@@ -32,10 +32,10 @@ public class PropertyGuardRegistryTests
     [Fact]
     public void GetPropertyGuards_DifferentCase_ReturnsEntry()
     {
-        var registry = new PropertyGuardRegistry();
+        PropertyGuardRegistry registry = new();
         registry.RegisterGuard(Fakes.UiGuard("HomePage", "title"));
 
-        var result = registry.GetPropertyGuards("homepage");
+        IReadOnlyDictionary<string, PropertyGuardEntry>? result = registry.GetPropertyGuards("homepage");
 
         result.Should().ContainKey("title");
     }
@@ -43,7 +43,7 @@ public class PropertyGuardRegistryTests
     [Fact]
     public void RemoveGuard_LastProperty_RemovesDocTypeEntry()
     {
-        var registry = new PropertyGuardRegistry();
+        PropertyGuardRegistry registry = new();
         registry.RegisterGuard(Fakes.UiGuard("content", "title"));
 
         registry.RemoveGuard("content", "title");

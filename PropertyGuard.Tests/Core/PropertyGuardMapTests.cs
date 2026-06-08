@@ -1,4 +1,4 @@
-using FluentAssertions;
+﻿using FluentAssertions;
 using PropertyGuard.Core;
 using PropertyGuard.Tests.Helpers;
 
@@ -9,7 +9,7 @@ public class PropertyGuardMapTests
     [Fact]
     public void Add_NewAlias_AppearsInGuards()
     {
-        var map = new PropertyGuardMap();
+        PropertyGuardMap map = new();
 
         map.Add(Fakes.UiGuard(propertyAlias: "title"));
 
@@ -19,7 +19,7 @@ public class PropertyGuardMapTests
     [Fact]
     public void Add_ExistingAlias_Overwrites()
     {
-        var map = new PropertyGuardMap();
+        PropertyGuardMap map = new();
         map.Add(Fakes.UiGuard(propertyAlias: "title"));
 
         map.Add(Fakes.UiGuard(propertyAlias: "title"));
@@ -33,7 +33,7 @@ public class PropertyGuardMapTests
     [InlineData("   ")]
     public void Add_NullOrWhitespaceAlias_DoesNothing(string? alias)
     {
-        var map = new PropertyGuardMap();
+        PropertyGuardMap map = new();
 
         map.Add(alias!, new PropertyGuardEntry(null));
 
@@ -43,7 +43,7 @@ public class PropertyGuardMapTests
     [Fact]
     public void Remove_ExistingAlias_RemovesGuard()
     {
-        var map = new PropertyGuardMap();
+        PropertyGuardMap map = new();
         map.Add(Fakes.UiGuard(propertyAlias: "title"));
 
         map.Remove("title");
