@@ -4,6 +4,7 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
+  <Project Path="PropertyGuard.Tests/PropertyGuard.Tests.csproj" />
   <Project Path="PropertyGuard.Website/PropertyGuard.Website.csproj" />
   <Project Path="PropertyGuard/PropertyGuard.csproj" />
 </Solution>

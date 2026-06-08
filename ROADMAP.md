@@ -38,7 +38,7 @@ The Guards section is already hidden from users whose user group does not includ
 | 2 | UI — layout, inline add flow, remove, Save (local state only) | ✅ Done |
 | 3 | Backend — RemoveGuard + ApplyGuards API endpoint (in-memory only, no persistence) | ✅ Done |
 | 4 | Wire up — connect UI to Phase 3 API endpoints | ✅ Done |
-| 5 | Unit tests (`PropertyGuard.Tests` project) | Pending |
+| 5 | Unit tests (`PropertyGuard.Tests` project) | ✅ Done |
 | 6 | CI/CD (GitHub Actions — build/test + publish workflows) | Pending |
 | 7 | README | Pending |
 
