@@ -38,8 +38,9 @@ The Guards section is already hidden from users whose user group does not includ
 | 2 | UI — layout, inline add flow, remove, Save (local state only) | ✅ Done |
 | 3 | Backend — RemoveGuard + ApplyGuards API endpoint (in-memory only, no persistence) | ✅ Done |
 | 4 | Wire up — connect UI to Phase 3 API endpoints | ✅ Done |
-| 5 | Tests & CI/CD | Pending |
-| 6 | README | Pending |
+| 5 | Unit tests (`PropertyGuard.Tests` project) | Pending |
+| 6 | CI/CD (GitHub Actions — build/test + publish workflows) | Pending |
+| 7 | README | Pending |
 
 ---
 
@@ -193,28 +194,35 @@ After Phase 3 is complete, swap local state mutations for real API calls.
 
 ---
 
-## Phase 5 — Tests & CI/CD
+## Phase 5 — Unit Tests
 
-### Unit tests (new project `PropertyGuard.Tests`)
+New project `PropertyGuard.Tests` — xUnit, NSubstitute, FluentAssertions, Bogus.
 
 - `PropertyGuardRegistry` — `RegisterGuard` merge; `RemoveGuard` removes correctly; empty map cleaned up; case-insensitive lookups
-- `PropertyGuardService.ApplyGuards` — adds new UI guards; removes stale UI guards; code/config guards untouched; cache invalidated
+- `PropertyGuardMap` — `Add`, `Remove`, overwrite, null alias no-op
+- `PropertyGuardService` — cache hit/miss; `ApplyGuards` adds new, removes stale, preserves code/config guards, invalidates cache
 - `PropertyGuardSavingNotificationHandler` — dirty guarded property reverts; non-guarded property untouched; no-guard doc type skipped
 
-### CI/CD (`.github/workflows/`)
+Feature spec: `docs/features/2026-06-phase-5-tests/`
 
-**`build-and-test.yml`** — on push to `v17/dev` and PRs targeting `main`:
-1. `dotnet restore && dotnet build && dotnet test`
+---
+
+## Phase 6 — CI/CD
+
+**`.github/workflows/build-and-test.yml`** — on push to `v17/dev` and PRs targeting `main`:
+1. `dotnet restore && dotnet build /p:TreatWarningsAsErrors=true && dotnet test`
 2. `cd PropertyGuard/Client && npm ci && npm run build`
 
-**`publish.yml`** — on tag push `v*.*.*`:
+**`.github/workflows/publish.yml`** — on tag push `v*.*.*`:
 1. Build + test
 2. `dotnet pack PropertyGuard/PropertyGuard.csproj`
 3. `dotnet nuget push` (secret: `NUGET_API_KEY`)
 
+Feature spec: `docs/features/2026-06-phase-6-ci-cd/`
+
 ---
 
-## Phase 6 — README
+## Phase 7 — README
 
 `README.md` at repo root covering:
 1. What it does (one paragraph)
