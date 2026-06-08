@@ -14,4 +14,11 @@ internal static class Fakes
         PropertyAlias = propertyAlias ?? _faker.Lorem.Word(),
         Source = PropertyGuardSource.Ui,
     };
+
+    public static PropertyGuardDto CodeGuard(string? documentTypeAlias = null, string? propertyAlias = null) => new()
+    {
+        DocumentTypeAlias = documentTypeAlias ?? _faker.Lorem.Word(),
+        PropertyAlias = propertyAlias ?? _faker.Lorem.Word(),
+        Source = PropertyGuardSource.Code,
+    };
 }
