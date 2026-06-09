@@ -18,7 +18,6 @@ const SOURCE_COLORS: Record<string, 'default' | 'positive' | 'warning' | 'danger
 
 @customElement('propertyguard-section-view')
 export class PropertyGuardSectionViewElement extends UmbLitElement implements UmbSectionViewElement {
-
   @state() private _propertyGuards: PropertyGuardDto[] = [];
   @state() private _selectedFeatureKey: string = DEFAULT_FEATURE;
   @state() private _selectedFeatureGroup: string = '';
@@ -31,9 +30,7 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
   @state() private _filterQuery = '';
   @state() private _isDirty = false;
 
-
   #propertyGuardContext?: PropertyGuardContext;
-
 
   constructor() {
     super();
@@ -63,7 +60,6 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
     });
   }
 
-
   override updated(changedProperties: Map<string, unknown>) {
     if (changedProperties.has('_filterQuery')) {
       const visibleFeatures = this.#visibleFeatureKeys;
@@ -87,7 +83,6 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
       requestAnimationFrame(() => this.shadowRoot?.querySelector<HTMLInputElement>('.group-input')?.focus());
     }
   }
-
 
   get #filteredPropertyGuards(): PropertyGuardDto[] {
     return this._propertyGuards.filter((g) => {
@@ -122,7 +117,6 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
       : this._featureGroups;
   }
 
-
   #getFeatureKeys() {
     return [...new Set(this._propertyGuards.map((g) => g.featureKey.split('.')[0]))];
   }
@@ -141,12 +135,13 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
     const query = this._filterQuery.toLowerCase();
     if (!query) return true;
     return (
-      guardDisplayName(guard, (key) => this.localize.string(key)).toLowerCase().includes(query) ||
+      guardDisplayName(guard, (key) => this.localize.string(key))
+        .toLowerCase()
+        .includes(query) ||
       guard.propertyAlias.toLowerCase().includes(query) ||
       guard.featureKey.toLowerCase().includes(query)
     );
   }
-
 
   async #addPropertyGuard() {
     const modalManager = await this.getContext(UMB_MODAL_MANAGER_CONTEXT);
@@ -155,7 +150,8 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
     const modal = modalManager.open(this, UMB_DOCUMENT_PROPERTY_VALUE_USER_PERMISSION_FLOW_MODAL, {
       data: {
         preset: { verbs: ['Umb.Document.PropertyValue.Read'] },
-        pickablePropertyTypeFilter: (pt) => !this.#filteredPropertyGuards.some((g) => g.propertyTypeUnique === pt.unique),
+        pickablePropertyTypeFilter: (pt) =>
+          !this.#filteredPropertyGuards.some((g) => g.propertyTypeUnique === pt.unique),
       },
     });
 
@@ -214,13 +210,19 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
           verbs: guard.permissions.map((p) => `Umb.Document.PropertyValue.${p}`),
         },
         pickablePropertyTypeFilter: (pt) =>
-          pt.unique === guard.propertyTypeUnique || !this.#filteredPropertyGuards.some((g) => g.propertyTypeUnique === pt.unique),
+          pt.unique === guard.propertyTypeUnique ||
+          !this.#filteredPropertyGuards.some((g) => g.propertyTypeUnique === pt.unique),
       },
     });
 
     try {
       const value = await modal?.onSubmit();
-      const replacement = await this.#resolveGuard(value.documentType.unique, value.propertyType.unique, value.verbs, guard);
+      const replacement = await this.#resolveGuard(
+        value.documentType.unique,
+        value.propertyType.unique,
+        value.verbs,
+        guard,
+      );
       if (!replacement) return;
       this._propertyGuards = this._propertyGuards.map((g) =>
         g.documentTypeAlias === guard.documentTypeAlias && g.propertyAlias === guard.propertyAlias ? replacement : g,
@@ -301,7 +303,6 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
     this._selectedFeatureGroup = name;
   }
 
-
   override render() {
     return html`
       <umb-workspace-editor>
@@ -324,7 +325,12 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
         </uui-box>
         <div slot="footer-info" class="footer-info">
           UI guards are session-only and will be lost on restart — for DB persistence or extra functionality, try
-          <a href="https://github.com/dannysmallbone/Umbraco-Community-FeatureGuard" target="_blank" class="featureguard-link">FeatureGuard</a>
+          <a
+            href="https://github.com/dannysmallbone/Umbraco-Community-FeatureGuard"
+            target="_blank"
+            class="featureguard-link"
+            >FeatureGuard</a
+          >
           <uui-badge look="primary">
             <uui-icon name="icon-diamond"></uui-icon>
           </uui-badge>
@@ -339,7 +345,13 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
           >
             Copy config
           </uui-button>
-          <uui-button look="primary" color="positive" label="Apply" ?disabled=${!this._isDirty} @click=${this.#applyGuards}>
+          <uui-button
+            look="primary"
+            color="positive"
+            label="Apply"
+            ?disabled=${!this._isDirty}
+            @click=${this.#applyGuards}
+          >
             Apply
           </uui-button>
         </div>
@@ -382,7 +394,12 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
               ></uui-input>
             `
           : html`
-              <uui-button class="btn-add" look="placeholder" label="Add feature" @click=${() => (this._addingFeature = true)}>
+              <uui-button
+                class="btn-add"
+                look="placeholder"
+                label="Add feature"
+                @click=${() => (this._addingFeature = true)}
+              >
                 <uui-icon name="add"></uui-icon>
               </uui-button>
             `}
@@ -492,12 +509,16 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
   #renderAddButton() {
     if (this.#visibleGroups.length === 0) return nothing;
     return html`
-      <uui-button class="btn-add" look="placeholder" label=${this.localize.term('general_add')} @click=${this.#addPropertyGuard}>
+      <uui-button
+        class="btn-add"
+        look="placeholder"
+        label=${this.localize.term('general_add')}
+        @click=${this.#addPropertyGuard}
+      >
         <uui-icon name="add"></uui-icon>
       </uui-button>
     `;
   }
-
 
   static override styles = [
     css`
@@ -528,6 +549,7 @@ export class PropertyGuardSectionViewElement extends UmbLitElement implements Um
       }
 
       .featureguard-link {
+        display: none;
         text-decoration: none;
         color: var(--uui-color-interactive);
       }

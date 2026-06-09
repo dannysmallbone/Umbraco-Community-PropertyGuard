@@ -1,0 +1,39 @@
+name: Build and Test
+
+on:
+  push:
+    branches:
+      - v17/dev
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore PropertyGuard.Tests/PropertyGuard.Tests.csproj
+
+      - name: Build
+        run: dotnet build PropertyGuard.Tests/PropertyGuard.Tests.csproj --no-restore --configuration Release /p:TreatWarningsAsErrors=true
+
+      - name: Test
+        run: dotnet test PropertyGuard.Tests/PropertyGuard.Tests.csproj --no-build --configuration Release
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Frontend build
+        working-directory: PropertyGuard/Client
+        run: npm ci && npm run build
