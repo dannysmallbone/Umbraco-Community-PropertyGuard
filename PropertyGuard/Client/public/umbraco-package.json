@@ -1,0 +1,14 @@
+{
+  "id": "PropertyGuard",
+  "name": "PropertyGuard",
+  "version": "0.0.0",
+  "allowTelemetry": true,
+  "extensions": [
+    {
+      "name": "Property Guard Bundle",
+      "alias": "PropertyGuard.Bundle",
+      "type": "bundle",
+      "js": "/App_Plugins/PropertyGuard/property-guard.js"
+    }
+  ]
+}
