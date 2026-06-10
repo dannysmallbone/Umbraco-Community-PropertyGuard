@@ -12,7 +12,11 @@
     <Title>Property Guard</Title>
     <Description>Umbraco Community PropertyGuard is an open-source package for Umbraco CMS that protects Umbraco content properties with guards.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>umbraco; umbraco-cms; property-guard</PackageTags>
+    <PackageTags>umbraco; umbraco-cms; property-guard; umbraco-marketplace</PackageTags>
+    <Authors>Daniel Smallbone</Authors>
+    <PackageProjectUrl>https://github.com/dannysmallbone/Umbraco-Community-PropertyGuard</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/dannysmallbone/Umbraco-Community-PropertyGuard</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
