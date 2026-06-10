@@ -1,0 +1,42 @@
+{
+  "$schema": "https://marketplace.umbraco.com/umbraco-marketplace-schema.json",
+  "Title": "Property Guard",
+  "Category": "Developer Tools",
+  "Description": "PropertyGuard protects Umbraco content properties from being edited. Define guards in code, configuration, or via the backoffice Guards section — no custom code required.",
+  "PackageType": "Package",
+  "LicenseTypes": ["Free"],
+  "IssueTrackerUrl": "https://github.com/dannysmallbone/Umbraco-Community-PropertyGuard/issues",
+  "AuthorDetails": {
+    "Name": "Daniel Smallbone",
+    "Url": "https://github.com/dannysmallbone",
+    "ImageUrl": "https://github.com/dannysmallbone.png",
+    "SyncContributorsFromRepository": true
+  },
+  "Tags": ["property", "guard", "content protection", "read-only", "hidden", "editor tools"],
+  "Screenshots": [
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/dannysmallbone/Umbraco-Community-PropertyGuard/main/docs/screenshots/guards-section_with-guards.png",
+      "Caption": "Guards section — managing guards across multiple document types"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/dannysmallbone/Umbraco-Community-PropertyGuard/main/docs/screenshots/guards-section_empty-state.png",
+      "Caption": "Guards section — empty state ready to add your first guard"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/dannysmallbone/Umbraco-Community-PropertyGuard/main/docs/screenshots/guards-content-app_guards.png",
+      "Caption": "Content app — guards list for a content node"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/dannysmallbone/Umbraco-Community-PropertyGuard/main/docs/screenshots/guards-content_guarded-properties.png",
+      "Caption": "Content editor — guarded properties shown as read-only"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/dannysmallbone/Umbraco-Community-PropertyGuard/main/docs/screenshots/guards-content_guarded-property-notification.png",
+      "Caption": "Save blocked — error notification when a guarded property is changed"
+    },
+    {
+      "ImageUrl": "https://raw.githubusercontent.com/dannysmallbone/Umbraco-Community-PropertyGuard/main/docs/screenshots/guards-section_user-group.png",
+      "Caption": "Section access — granting a user group access to the Guards section"
+    }
+  ]
+}
