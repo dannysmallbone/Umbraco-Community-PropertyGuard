@@ -1,4 +1,4 @@
-using PropertyGuard.DependencyInjection;
+﻿using PropertyGuard.DependencyInjection;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
