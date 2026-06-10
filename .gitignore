@@ -485,3 +485,6 @@ PropertyGuard/wwwroot/App_Plugins/PropertyGuard
 
 # Local developer settings — never commit
 **/appsettings.Local.json
+
+# Internal planning docs — not for public consumption
+docs/features/
