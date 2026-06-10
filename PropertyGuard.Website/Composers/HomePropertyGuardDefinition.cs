@@ -1,4 +1,4 @@
-using PropertyGuard.Core;
+﻿using PropertyGuard.Core;
 using PropertyGuard.Definitions;
 using PropertyGuard.Dtos;
 using PropertyGuard.Extensions;
@@ -14,20 +14,20 @@ public class HomePropertyGuardDefinition : IPropertyGuardDefinition
         {
             DocumentTypeAlias = "home",
             PropertyAlias = "heroHeader",
-            FeatureKey = "Hero.Content",
+            FeatureKey = "Tier.Advanced",
             Message = "Locked via code (DTO)",
             Mode = PropertyGuardMode.ReadOnly,
         });
 
         // Pattern 2: IPropertyGuardMap — good for registering multiple properties at once
         IPropertyGuardMap map = new PropertyGuardMap()
-            .Add("heroDescription", featureKey: "Hero.Content", message: "Locked via code (map)", mode: PropertyGuardMode.Hidden);
+            .Add("heroDescription", featureKey: "Tier.Advanced", message: "Locked via code (map)", mode: PropertyGuardMode.Hidden);
 
         propertyGuardRegistry.RegisterGuard("home", map);
 
         // Pattern 3: CreateGuard fluent extension — concise, chains off the registry directly
         propertyGuardRegistry
             .CreateGuard("home")
-            .RegisterProperty("heroCtalink", featureKey: "Hero.Actions");
+            .RegisterProperty("heroCtalink", featureKey: "Tier.Advanced");
     }
 }

@@ -29,8 +29,17 @@ jobs:
       - name: Test
         run: dotnet test PropertyGuard.Tests/PropertyGuard.Tests.csproj --no-build --configuration Release
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Frontend build
+        working-directory: PropertyGuard/Client
+        run: npm ci && npm run build
+
       - name: Pack
-        run: dotnet pack PropertyGuard/PropertyGuard.csproj --no-build --configuration Release --output ./nupkg
+        run: dotnet pack PropertyGuard/PropertyGuard.csproj --no-build --configuration Release --output ./nupkg /p:Version=${GITHUB_REF_NAME#v}
 
       - name: Push to NuGet
         run: dotnet nuget push ./nupkg/*.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
