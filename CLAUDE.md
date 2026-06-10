@@ -18,7 +18,7 @@ Personal open-source Umbraco community package. MIT licence. Published as `Umbra
 - **Runtime:** .NET 10 / Umbraco 17+
 - **Source:** `dannysmallbone/Umbraco-Community-PropertyGuard` (GitHub, personal — not bifroststudiosuk)
 - **Local dev:** `https://localhost:44303` — SQLite, auto-installs on first run
-- **Login:** `dannysmallbone@gmail.com` / `password321`
+- **Login:** see `PropertyGuard.Website/appsettings.Local.json`
 - **Current branch:** `v17/dev`
 
 ## Core rules
